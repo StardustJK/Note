@@ -1,9 +1,7 @@
 package group3.sse.bupt.note;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Message;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.view.View;
@@ -50,7 +48,7 @@ public class PlanAdapter extends BaseAdapter implements Filterable {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
        // mContext.setTheme((sharedPreferences.getBoolean("nightMode", false)? R.style.NightTheme: R.style.DayTheme));
         mContext.setTheme(R.style.DayTheme);
-        View v = View.inflate(mContext, R.layout.plan_layout, null);
+        View v = View.inflate(mContext, R.layout.adapter_plan_layout, null);
         TextView tv_content = (TextView)v.findViewById(R.id.tv_content);
         TextView tv_time = (TextView)v.findViewById(R.id.tv_time);
 

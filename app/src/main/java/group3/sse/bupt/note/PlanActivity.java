@@ -7,11 +7,14 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import java.security.PublicKey;
@@ -23,6 +26,14 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
 
     private PlanDatabase dbHepler;
 
+    private EditText editText;
+    private View inflate;
+    private AlertDialog modifyDialog;
+    private AlertDialog.Builder alertbuidler;
+    private Plan curPlan;
+
+    private int code=1;//1是添加，2是修改；
+
     private Button new_plan;
     private Context context=this;
     private ListView lv;
@@ -32,6 +43,49 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_plan);
+
+        //dialog
+        alertbuidler=new AlertDialog.Builder(PlanActivity.this);
+        inflate = LayoutInflater.from(this).inflate(R.layout.dialog_plan_edit, null);
+        editText=inflate.findViewById(R.id.et_content);
+        alertbuidler.setView(inflate);
+        modifyDialog=alertbuidler.setPositiveButton("完成",
+                new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Log.i("hcccc","code:"+code);
+                        switch (code){
+                            case 2:
+                                Plan modifiedPlan=new Plan(editText.getText().toString(),curPlan.getTime());
+                                modifiedPlan.setId(curPlan.getId());
+                                modifyPlan(modifiedPlan);
+                                break;
+                            case 1:
+                                Plan newplan=new Plan();
+                                int []dateArray=new int[3];
+                                int []timeArray=new int[2];
+                                dateArray[0]=newplan.getYear();
+                                dateArray[1]=newplan.getMonth()+1;
+                                dateArray[2]=newplan.getDay();
+                                timeArray[0]=newplan.getHour();
+                                timeArray[1]=newplan.getMinute();
+                                newplan.setTime(dateArray[0]+"-"+dateArray[1]+"-"+dateArray[2]+" "+timeArray[0]+":"+timeArray[1]);
+                                newplan.setContent(editText.getText().toString());
+                                newPlan(newplan);
+                                break;
+
+                        }
+
+
+                    }
+                }
+        ).create();
+
+
+
+
+
         lv=findViewById(R.id.lv);
         adapter=new PlanAdapter(getApplicationContext(),planList);
         refreshView();
@@ -41,24 +95,15 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
         new_plan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent=new Intent(PlanActivity.this,EditPlan.class);
-                startActivityForResult(intent,1);
+                code=1;
+                editText.setText("");
+                modifyDialog.show();
 
             }
         });
     }
 
-    @Override
-    protected void onActivityResult(int requestCode,int resultCode,Intent data){
 
-        //new plan
-        String content=data.getExtras().getString("content",null);
-        String time=data.getExtras().getString("time",null);
-        Plan newPlan=new Plan(content,time);
-     //   Log.i("hcccc","newplan"+newPlan.getTime());
-        newPlan(newPlan);
-
-    }
 
     public void newPlan(Plan newPlan){
         DBConnector dbConnector=new DBConnector(context);
@@ -90,27 +135,17 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-      switch (parent.getId()){
+        code=2;
+        //通过dialog修改plan的内容
+        switch (parent.getId()){
           case R.id.lv:
               Log.i("hcccc","onclicked");
-              final Plan curPlan=(Plan) parent.getItemAtPosition(position);
-              AlertDialog.Builder modifyDialog=new AlertDialog.Builder(PlanActivity.this);
-              final EditText editText=new EditText(PlanActivity.this);
+              curPlan=(Plan) parent.getItemAtPosition(position);
               editText.setText(curPlan.getContent());
-              modifyDialog.setTitle("修改plan").setView(editText);
 
-              modifyDialog.setPositiveButton("完成",
-                      new DialogInterface.OnClickListener() {
-                          @Override
-                          public void onClick(DialogInterface dialog, int which) {
-                              Plan modifiedplan=new Plan(editText.getText().toString(),curPlan.getTime());
-                              modifiedplan.setId(curPlan.getId());
-
-                              modifyPlan(modifiedplan);
-                          }
-                      }
-              ).show();
+              modifyDialog.show();
               break;
       }
+
     }
 }
