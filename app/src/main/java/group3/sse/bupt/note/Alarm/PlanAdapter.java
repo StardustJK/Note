@@ -14,6 +14,8 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
+import group3.sse.bupt.note.Alarm.Plan;
+
 public class PlanAdapter extends BaseAdapter implements Filterable {
 
     private Context mContext;

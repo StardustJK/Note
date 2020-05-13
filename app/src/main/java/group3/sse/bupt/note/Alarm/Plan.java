@@ -1,4 +1,4 @@
-package group3.sse.bupt.note;
+package group3.sse.bupt.note.Alarm;
 
 import android.util.Log;
 
