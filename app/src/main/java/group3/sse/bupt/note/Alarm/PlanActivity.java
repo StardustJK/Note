@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import androidx.appcompat.app.AppCompatActivity;
-import group3.sse.bupt.note.PlanAdapter;
+import group3.sse.bupt.note.Alarm.PlanAdapter;
 import group3.sse.bupt.note.R;
 
 
@@ -27,7 +27,6 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
     private EditText editText;
     private View inflate;
     private AlertDialog modifyDialog;
-    private AlertDialog.Builder alertbuidler;
     private Plan curPlan;
 
     private int code=1;//1是添加，2是修改；
@@ -43,11 +42,11 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
         setContentView(R.layout.activity_plan);
 
         //dialog
-        alertbuidler=new AlertDialog.Builder(PlanActivity.this);
+        AlertDialog.Builder alertbuidler = new AlertDialog.Builder(PlanActivity.this);
         inflate = LayoutInflater.from(this).inflate(R.layout.dialog_plan_edit, null);
         editText=inflate.findViewById(R.id.et_content);
         alertbuidler.setView(inflate);
-        modifyDialog=alertbuidler.setPositiveButton("完成",
+        modifyDialog= alertbuidler.setPositiveButton("完成",
                 new DialogInterface.OnClickListener() {
 
                     @Override

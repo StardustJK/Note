@@ -1,4 +1,4 @@
-package group3.sse.bupt.note;
+package group3.sse.bupt.note.Alarm;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import group3.sse.bupt.note.Alarm.Plan;
+import group3.sse.bupt.note.R;
 
 public class PlanAdapter extends BaseAdapter implements Filterable {
 
