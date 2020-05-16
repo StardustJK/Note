@@ -35,8 +35,6 @@ public class DBConnector {
     public Plan addPlan(Plan plan){
         ContentValues contentValues=new ContentValues();
         contentValues.put(PlanDatabase.CONTENT,plan.getContent());
-        Log.i("hcccc","plan.gettime1"+plan.getPlanTime().getTime());
-        Log.i("hcccc","plan.gettime2"+plan.getTime());
         contentValues.put(PlanDatabase.TIME,plan.getTime());
         long insertId=db.insert(PlanDatabase.TABLE_NAME,null,contentValues);
         plan.setId(insertId);

@@ -3,19 +3,25 @@ package group3.sse.bupt.note.Alarm;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TimePicker;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 import group3.sse.bupt.note.Alarm.PlanAdapter;
 import group3.sse.bupt.note.R;
 
@@ -27,10 +33,12 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
     private EditText editText;
     private View inflate;
     private AlertDialog modifyDialog;
+    private AlertDialog date_time_picker;
     private Plan curPlan;
 
-    private int code=1;//1是添加，2是修改；
+    private int mode=1;//1是添加，2是修改；
 
+    private Button btn_time;
     private Button new_plan;
     private Context context=this;
     private ListView lv;
@@ -45,14 +53,15 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
         AlertDialog.Builder alertbuidler = new AlertDialog.Builder(PlanActivity.this);
         inflate = LayoutInflater.from(this).inflate(R.layout.dialog_plan_edit, null);
         editText=inflate.findViewById(R.id.et_content);
+        btn_time=inflate.findViewById(R.id.btn_time);
         alertbuidler.setView(inflate);
         modifyDialog= alertbuidler.setPositiveButton("完成",
                 new DialogInterface.OnClickListener() {
 
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        Log.i("hcccc","code:"+code);
-                        switch (code){
+                        Log.i("hcccc","mode:"+mode);
+                        switch (mode){
                             case 2:
                                 Plan modifiedPlan=new Plan(editText.getText().toString(),curPlan.getTime());
                                 modifiedPlan.setId(curPlan.getId());
@@ -81,7 +90,29 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
 
 
 
+        //设定时间
+        AlertDialog.Builder timebuilder = new AlertDialog.Builder(this);
+        View timeView = View .inflate(this, R.layout.dialog_date_time, null);
+        final DatePicker datePickerStart =  timeView .findViewById(R.id.date_picker);
+        final TimePicker timePickerStart = timeView .findViewById(R.id.time_picker);
+        timebuilder.setView(timeView);
 
+        timePickerStart.setIs24HourView(true);
+        hideYear(datePickerStart);
+//        if (datePickerStart != null) {
+//            try {
+//                Field f = datePickerStart.getClass().getDeclaredField("mYearSpinner");
+//                f.setAccessible(true);
+//                LinearLayout l = (LinearLayout) f.get(datePickerStart);
+//                l.setVisibility(View.GONE);
+//            } catch (NoSuchFieldException e) {
+//                e.printStackTrace();
+//            } catch (IllegalAccessException e) {
+//                e.printStackTrace();
+//            }
+//        }
+
+        date_time_picker=timebuilder.create();
 
         lv=findViewById(R.id.lv);
         adapter=new PlanAdapter(getApplicationContext(),planList);
@@ -92,15 +123,50 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
         new_plan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                code=1;
+                mode=1;
                 editText.setText("");
                 modifyDialog.show();
 
             }
         });
+
+        btn_time.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                date_time_picker.show();
+            }
+        });
     }
 
+    private void hideYear(DatePicker datePicker) {
+        //安卓5.0以上的处理
+        int daySpinnerId = Resources.getSystem().getIdentifier("year", "id", "android");
+        if (daySpinnerId != 0) {
+            View daySpinner = datePicker.findViewById(daySpinnerId);
+            if (daySpinner != null) {
+                daySpinner.setVisibility(View.GONE);
+            }
+        }
 
+//        Field[] datePickerFields = datePicker.getClass().getDeclaredFields();
+//        for (Field field : datePickerFields) {
+//            // 其中mYearSpinner为DatePicker中为“年”定义的变量名
+//            if (field.getName().equals("mYearPicker")
+//                    || field.getName().equals("mYearSpinner")) {
+//                Log.i("hcccc","myearspinner found");
+//                field.setAccessible(true);
+//                Object dayPicker = new Object();
+//                try {
+//                    dayPicker = field.get(datePicker);
+//                } catch (IllegalAccessException e) {
+//                    e.printStackTrace();
+//                } catch (IllegalArgumentException e) {
+//                    e.printStackTrace();
+//                }
+//                ((View) dayPicker).setVisibility(View.GONE);
+//            }
+//        }
+    }
 
     public void newPlan(Plan newPlan){
         DBConnector dbConnector=new DBConnector(context);
@@ -132,7 +198,7 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-        code=2;
+        mode=2;
         //通过dialog修改plan的内容
         switch (parent.getId()){
           case R.id.lv:

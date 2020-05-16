@@ -13,7 +13,7 @@
         android:theme="@style/DayTheme"
 
         >
-        <activity android:name=".MainActivity">
+        <activity android:name=".Alarm.PlanActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />
@@ -21,7 +21,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".EditActivity"/>
-        <activity android:name=".Alarm.PlanActivity"/>
+        <activity android:name=".MainActivity"/>
     </application>
 
 </manifest>

@@ -27,7 +27,6 @@ public class Plan {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         try {
             Date temp = simpleDateFormat.parse(format);
-            Log.d("hcccc", "temp:"+temp);
             planTime = Calendar.getInstance();
             planTime.setTime(temp);
         } catch (ParseException e) {
