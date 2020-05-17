@@ -22,6 +22,17 @@
         </activity>
         <activity android:name=".EditActivity"/>
         <activity android:name=".MainActivity"/>
+        <receiver android:name=".Alarm.AlarmReceiver">
+            <intent-filter>
+                <action android:name="group3.sse.bupt.note.Alarm.AlarmReceiver"/>
+            </intent-filter>
+        </receiver>
+
     </application>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- 允许程序振动 -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- 允许程序在手机屏幕关闭后后台进程仍然运行 -->
+    <uses-permission android:name="android.permission.FLASHLIGHT"/>
 
 </manifest>

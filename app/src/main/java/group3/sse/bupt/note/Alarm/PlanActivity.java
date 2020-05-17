@@ -1,8 +1,11 @@
 package group3.sse.bupt.note.Alarm;
 
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,7 +19,9 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TimePicker;
 
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -56,11 +61,17 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
 
 
 
+    //系统提醒
+    private AlarmManager alarmManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_plan);
+
+        //系统提醒
+        alarmManager= (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+
 
         //dialog
         AlertDialog.Builder alertbuidler = new AlertDialog.Builder(PlanActivity.this);
@@ -169,7 +180,7 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
 
         lv=findViewById(R.id.lv);
         adapter=new PlanAdapter(getApplicationContext(),planList);
-        refreshView();
+        refreshListView();
         lv.setAdapter(adapter);
         lv.setOnItemClickListener(this);
         new_plan=findViewById(R.id.new_plan);
@@ -194,6 +205,37 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
         });
 
 
+    }
+
+    //设置提醒
+    private void startAlarm(Plan p){
+        Calendar c=p.getPlanTime();
+        if(!c.before(Calendar.getInstance())){
+            Intent intent=new Intent(PlanActivity.this,AlarmReceiver.class);
+            intent.putExtra("content",p.getContent());
+            intent.putExtra("id",(int)p.getId());
+            PendingIntent pendingIntent=PendingIntent.getBroadcast(this,(int)p.getId(),intent,0);
+            alarmManager.setExact(AlarmManager.RTC_WAKEUP,c.getTimeInMillis(),pendingIntent);
+        }
+    }
+
+    //设置多个提醒
+    private void startAlarms(List<Plan> plans){
+        for(int i=0;i<plans.size();i++)
+            startAlarm(plans.get(i));
+    }
+
+    //取消提醒
+    private void cancaelAlarm(Plan p){
+        Intent intent=new Intent(this,AlarmReceiver.class);
+        PendingIntent pendingIntent=PendingIntent.getBroadcast(this,(int)p.getId(),intent,0);
+        alarmManager.cancel(pendingIntent);
+    }
+
+    //取消多个提醒
+    private void cancelAlarms(List<Plan> plans){
+        for(int i=0;i<plans.size();i++)
+            cancaelAlarm(plans.get(i));
     }
 
     //隐藏年份
@@ -233,7 +275,7 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
         dbConnector.open();
         dbConnector.addPlan(newPlan);
         dbConnector.close();
-        refreshView();
+        refreshListView();
     }
 
     //修改后的plan提交到数据库
@@ -242,15 +284,19 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
         dbConnector.open();
         dbConnector.updatePlan(plan);
         dbConnector.close();
-        refreshView();
+        refreshListView();
     }
 
     //添加Plan后刷新界面
-    public void refreshView(){
+    public void refreshListView(){
         DBConnector dbConnector=new DBConnector(context);
         dbConnector.open();
-        if(planList.size()>0) planList.clear();
+        if(planList.size()>0) {
+            cancelAlarms(planList);
+            planList.clear();
+        }
         planList.addAll(dbConnector.getAllPlans());
+        startAlarms(planList);
 
         dbConnector.close();
         adapter.notifyDataSetChanged();
