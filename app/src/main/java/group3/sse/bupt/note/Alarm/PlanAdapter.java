@@ -1,5 +1,6 @@
 package group3.sse.bupt.note.Alarm;
 
+import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
@@ -7,6 +8,7 @@ import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.TextView;
@@ -47,7 +49,7 @@ public class PlanAdapter extends BaseAdapter implements Filterable {
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, View convertView, ViewGroup parent) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
        // mContext.setTheme((sharedPreferences.getBoolean("nightMode", false)? R.style.NightTheme: R.style.DayTheme));
         mContext.setTheme(R.style.DayTheme);
@@ -62,6 +64,21 @@ public class PlanAdapter extends BaseAdapter implements Filterable {
         //Save plan id to tag
         v.setTag(planList.get(position).getId());
 
+
+        Button btn_delete=v.findViewById(R.id.btn_delete);
+        btn_delete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Plan plan=planList.get(position);
+                DBConnector dbConnector=new DBConnector(mContext);
+                dbConnector.open();
+                dbConnector.removePlan(plan);
+                dbConnector.close();
+
+                refreshView();
+
+            }
+        });
         return v;
     }
 
@@ -72,6 +89,16 @@ public class PlanAdapter extends BaseAdapter implements Filterable {
         }
         return mFilter;
     }
+    public void refreshView(){
+        DBConnector dbConnector=new DBConnector(mContext);
+        dbConnector.open();
+        if(planList.size()>0) planList.clear();
+        planList.addAll(dbConnector.getAllPlans());
+
+        dbConnector.close();
+        notifyDataSetChanged();
+    }
+
     class MyFilter extends Filter {
         //我们在performFiltering(CharSequence charSequence)这个方法中定义过滤规则
         @Override

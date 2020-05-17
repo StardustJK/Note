@@ -12,19 +12,15 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
-import android.widget.LinearLayout;
+
 import android.widget.ListView;
 import android.widget.TimePicker;
 
-import java.lang.reflect.Field;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.arch.core.internal.FastSafeIterableMap;
-import androidx.lifecycle.ViewModelProvider;
-import group3.sse.bupt.note.Alarm.PlanAdapter;
+
 import group3.sse.bupt.note.R;
 
 
@@ -57,6 +53,10 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
     private ListView lv;
     private PlanAdapter adapter;
     private List<Plan> planList=new ArrayList<>();
+
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,6 +68,7 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
         editText=inflate.findViewById(R.id.et_content);
         btn_setTime=inflate.findViewById(R.id.btn_time);
         alertbuidler.setView(inflate);
+        //新建/修改plan框
         modifyDialog= alertbuidler.setPositiveButton("完成",
                 new DialogInterface.OnClickListener() {
 
@@ -136,6 +137,7 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
         date_time_picker=timebuilder.create();
 
 
+        //修改时间确认按钮
         btn_confirmTime=timeView.findViewById(R.id.btn_confirmTime);
         btn_confirmTime.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -171,6 +173,8 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
         lv.setAdapter(adapter);
         lv.setOnItemClickListener(this);
         new_plan=findViewById(R.id.new_plan);
+
+        //新建Plan按钮
         new_plan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -181,14 +185,18 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
             }
         });
 
+        //修改时间按钮
         btn_setTime.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 date_time_picker.show();
             }
         });
+
+
     }
 
+    //隐藏年份
     private void hideYear(DatePicker datePicker) {
         //安卓5.0以上的处理
         int daySpinnerId = Resources.getSystem().getIdentifier("year", "id", "android");
@@ -219,6 +227,7 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
 //        }
     }
 
+    //新添加的plan提交到数据库
     public void newPlan(Plan newPlan){
         DBConnector dbConnector=new DBConnector(context);
         dbConnector.open();
@@ -227,6 +236,7 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
         refreshView();
     }
 
+    //修改后的plan提交到数据库
     public void modifyPlan(Plan plan){
         DBConnector dbConnector=new DBConnector(context);
         dbConnector.open();
@@ -252,6 +262,8 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
         else
             return true;
     }
+
+    //修改plan
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 

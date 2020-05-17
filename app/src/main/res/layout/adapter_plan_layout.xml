@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
+    android:orientation="horizontal" android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingLeft="12dp"
     android:paddingRight="12dp"
@@ -9,24 +9,35 @@
     android:background="@drawable/plan_shape"
     android:outlineAmbientShadowColor="@color/black">
 
-    <TextView
-        android:id="@+id/tv_time"
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Time"
-        android:gravity="center"
-        android:textSize="24dp"
-        android:textColor="?attr/tvMainColor"/>
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/tv_content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Content"
+            android:textSize="24dp"
+            android:textColor="?attr/tvMainColor"/>
 
-    <TextView
-        android:id="@+id/tv_content"
+        <TextView
+            android:id="@+id/tv_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Time"
+            android:textSize="20dp"
+            android:textColor="?attr/tvSubColor"
+            android:singleLine="true"/>
+
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btn_delete"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Content"
-        android:textSize="20dp"
-        android:textColor="?attr/tvSubColor"
-        android:singleLine="true"/>
-
-
+        android:text="删除" />
 
 </LinearLayout>
