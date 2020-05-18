@@ -26,11 +26,12 @@ public class PlanAdapter extends BaseAdapter implements Filterable {
     private List<Plan> backupList;//用来备份原始数据
     private List<Plan> planList;//这个数据是会改变的，所以要有个变量来备份一下原始数据
     PlanAdapter.MyFilter mFilter;
-
+    Button btn_delete;
     public PlanAdapter(Context context,List<Plan> planList){
         this.mContext=context;
         this.planList=planList;
         backupList=planList;
+
     }
 
     @Override
@@ -65,7 +66,7 @@ public class PlanAdapter extends BaseAdapter implements Filterable {
         v.setTag(planList.get(position).getId());
 
 
-        Button btn_delete=v.findViewById(R.id.btn_delete);
+        btn_delete=v.findViewById(R.id.btn_delete);
         btn_delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
