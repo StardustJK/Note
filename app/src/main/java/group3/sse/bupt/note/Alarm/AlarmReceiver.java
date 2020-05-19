@@ -7,6 +7,8 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
 
 import java.util.TreeMap;
 
@@ -22,9 +24,14 @@ public class AlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
 
-        String content=intent.getExtras().getString("content");
-        int id=intent.getExtras().getInt("id");
+        Bundle bundle = intent.getExtras();
+
+        String content=intent.getStringExtra("content");
+        int id=intent.getIntExtra("id",0);
         Intent intent1=new Intent(context,PlanActivity.class);
+        Log.i("hccccc","alarm content:"+content);
+        Log.i("hccccc","alarm id:"+id);
+
 
         PendingIntent pendingIntent=PendingIntent.getActivity(context,id,intent1,0);
         NotificationManager manager= (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -37,6 +44,7 @@ public class AlarmReceiver extends BroadcastReceiver {
         }
 
         NotificationCompat.Builder builder=new NotificationCompat.Builder(context,channelId)
+                .setContentTitle("待办事项")
                 .setContentText(content)
                 .setSmallIcon(R.drawable.red_alarm_24dp)
                 .setContentIntent(pendingIntent)

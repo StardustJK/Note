@@ -23,9 +23,7 @@
         <activity android:name=".EditActivity"/>
         <activity android:name=".MainActivity"/>
         <receiver android:name=".Alarm.AlarmReceiver">
-            <intent-filter>
-                <action android:name="group3.sse.bupt.note.Alarm.AlarmReceiver"/>
-            </intent-filter>
+
         </receiver>
 
     </application>

@@ -19,7 +19,6 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TimePicker;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -212,9 +211,15 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
         Calendar c=p.getPlanTime();
         if(!c.before(Calendar.getInstance())){
             Intent intent=new Intent(PlanActivity.this,AlarmReceiver.class);
+            Log.i("hcccc","设置提醒的content"+p.getContent());
+            Log.i("hcccc","设置提醒的id"+p.getId());
+
             intent.putExtra("content",p.getContent());
             intent.putExtra("id",(int)p.getId());
-            PendingIntent pendingIntent=PendingIntent.getBroadcast(this,(int)p.getId(),intent,0);
+            Log.i("hcccc","intent content"+intent.getExtras().getString("content"));
+            Log.i("hcccc","inten id"+intent.getExtras().getInt("id"));
+            PendingIntent pendingIntent=PendingIntent.getBroadcast(this,(int)p.getId(),intent,PendingIntent.FLAG_ONE_SHOT);
+
             alarmManager.setExact(AlarmManager.RTC_WAKEUP,c.getTimeInMillis(),pendingIntent);
         }
     }
@@ -226,7 +231,7 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     //取消提醒
-    private void cancaelAlarm(Plan p){
+    private void cancelAlarm(Plan p){
         Intent intent=new Intent(this,AlarmReceiver.class);
         PendingIntent pendingIntent=PendingIntent.getBroadcast(this,(int)p.getId(),intent,0);
         alarmManager.cancel(pendingIntent);
@@ -235,7 +240,7 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
     //取消多个提醒
     private void cancelAlarms(List<Plan> plans){
         for(int i=0;i<plans.size();i++)
-            cancaelAlarm(plans.get(i));
+            cancelAlarm(plans.get(i));
     }
 
     //隐藏年份

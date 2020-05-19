@@ -1,22 +1,31 @@
 package group3.sse.bupt.note.Alarm;
 
+import android.app.AlarmManager;
 import android.app.Application;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.text.SpannableString;
+import android.text.Spanned;
 import android.text.TextUtils;
+import android.text.style.StrikethroughSpan;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
-import group3.sse.bupt.note.Alarm.Plan;
+import group3.sse.bupt.note.Alarm.AlarmReceiver;
 import group3.sse.bupt.note.R;
 
 public class PlanAdapter extends BaseAdapter implements Filterable {
@@ -27,10 +36,14 @@ public class PlanAdapter extends BaseAdapter implements Filterable {
     private List<Plan> planList;//这个数据是会改变的，所以要有个变量来备份一下原始数据
     PlanAdapter.MyFilter mFilter;
     Button btn_delete;
+    CheckBox checkBox;
+    private AlarmManager alarmManager;
+
     public PlanAdapter(Context context,List<Plan> planList){
         this.mContext=context;
         this.planList=planList;
         backupList=planList;
+
 
     }
 
@@ -80,9 +93,72 @@ public class PlanAdapter extends BaseAdapter implements Filterable {
 
             }
         });
+
+
+        checkBox=v.findViewById(R.id.checkbox);
+        checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    Plan plan=planList.get(position);
+//                    plan.setIsDone(true);
+//                    modifyPlan(plan);
+                    cancaelAlarm(plan);
+                }
+                else {
+                    Plan plan=planList.get(position);
+//                    plan.setIsDone(false);
+//                    modifyPlan(plan);
+                   // cancaelAlarm(plan);
+                    startAlarm(plan);
+                }
+            }
+        });
+
+//        //已完成
+//        if(planList.get(position).getIsDone()){
+//            //checkBox.setChecked(true);
+//            String content=planList.get(position).getContent();
+//            SpannableString sp = new SpannableString(content);
+//
+//            sp.setSpan(new StrikethroughSpan(), 0, content.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+//
+//            tv_content.setText(sp);
+//        }
+//        else{
+//           // checkBox.setChecked(false);
+//            tv_content.setText(planList.get(position).getContent());
+//        }
+
+
         return v;
     }
 
+    public void modifyPlan(Plan plan){
+        DBConnector dbConnector=new DBConnector(mContext);
+        dbConnector.open();
+        dbConnector.updatePlan(plan);
+        dbConnector.close();
+        refreshView();
+    }
+
+    private void startAlarm(Plan p){
+        Calendar c=p.getPlanTime();
+        if(!c.before(Calendar.getInstance())){
+            Intent intent=new Intent(mContext,AlarmReceiver.class);
+            intent.putExtra("content",p.getContent());
+            intent.putExtra("id",(int)p.getId());
+            PendingIntent pendingIntent=PendingIntent.getBroadcast(mContext,(int)p.getId(),intent,PendingIntent.FLAG_ONE_SHOT);
+            alarmManager.setExact(AlarmManager.RTC_WAKEUP,c.getTimeInMillis(),pendingIntent);
+        }
+    }
+
+    private void cancaelAlarm(Plan p){
+        Intent intent=new Intent(mContext,AlarmReceiver.class);
+        PendingIntent pendingIntent=PendingIntent.getBroadcast(mContext,(int)p.getId(),intent,0);
+        alarmManager= (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
+        alarmManager.cancel(pendingIntent);
+    }
     @Override
     public Filter getFilter() {
         if (mFilter ==null){

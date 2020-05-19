@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 class PlanDatabase extends SQLiteOpenHelper {
     public static final String TABLE_NAME = "plans";
     public static final String CONTENT = "content";
+    public static final String ISDONE = "isdone";
     public static final String ID = "_id";
     public static final String TIME = "time";
     public static final String MODE = "mode";
@@ -20,6 +21,7 @@ class PlanDatabase extends SQLiteOpenHelper {
                 + "("
                 + ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + CONTENT + " TEXT NOT NULL,"
+                +ISDONE+" BOOLEAN NOT NULL,"
                 + TIME + " TEXT NOT NULL)"
         );
     }
