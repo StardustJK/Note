@@ -25,6 +25,9 @@ import java.util.List;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import group3.sse.bupt.note.CRUD;
+import group3.sse.bupt.note.MainActivity;
+import group3.sse.bupt.note.Note;
 import group3.sse.bupt.note.R;
 
 
@@ -204,6 +207,38 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
             }
         });
 
+        //长按删除Plan
+        AdapterView.OnItemLongClickListener ListViewLongClickListener = new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(final AdapterView<?> parent, View view, final int position, long id) {
+                switch (parent.getId()) {
+                    case R.id.lv:
+                        new androidx.appcompat.app.AlertDialog.Builder(PlanActivity.this)
+                                .setMessage("确定删除该事项吗？")
+                                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        Plan clickedplan = (Plan) parent.getItemAtPosition(position);//当前
+                                        DBConnector dbConnector=new DBConnector(context);
+                                        dbConnector.open();
+                                        dbConnector.removePlan(clickedplan);
+                                        dbConnector.close();
+                                        refreshListView();
+
+                                    }
+                                }).setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();//关闭对话框
+                            }
+                        }).create().show();
+
+                        return true;
+                }
+                return false;
+            }
+        };
+        lv.setOnItemLongClickListener(ListViewLongClickListener);
 
     }
 
@@ -299,5 +334,8 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
               break;
       }
 
+
     }
+
+
 }

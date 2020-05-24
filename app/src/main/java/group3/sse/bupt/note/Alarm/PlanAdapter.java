@@ -1,21 +1,16 @@
 package group3.sse.bupt.note.Alarm;
 
 import android.app.AlarmManager;
-import android.app.Application;
-import android.app.PendingIntent;
+
 import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
+
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.StrikethroughSpan;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.Filter;
@@ -35,7 +30,6 @@ public class PlanAdapter extends BaseAdapter implements Filterable {
     private List<Plan> backupList;//用来备份原始数据
     private List<Plan> planList;//这个数据是会改变的，所以要有个变量来备份一下原始数据
     PlanAdapter.MyFilter mFilter;
-    Button btn_delete;
     CheckBox checkBox;
     private AlarmManager alarmManager;
     AlarmUtils alarmUtils;
@@ -66,36 +60,16 @@ public class PlanAdapter extends BaseAdapter implements Filterable {
 
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
-       // mContext.setTheme((sharedPreferences.getBoolean("nightMode", false)? R.style.NightTheme: R.style.DayTheme));
         mContext.setTheme(R.style.DayTheme);
         View v = View.inflate(mContext, R.layout.adapter_plan_layout, null);
         TextView tv_content = (TextView)v.findViewById(R.id.tv_content);
         TextView tv_time = (TextView)v.findViewById(R.id.tv_time);
 
         //Set text for TextView
-        //tv_content.setText(planList.get(position).getContent());
         tv_time.setText(planList.get(position).getTime());
 
         //Save plan id to tag
         v.setTag(planList.get(position).getId());
-
-
-        btn_delete=v.findViewById(R.id.btn_delete);
-        btn_delete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Plan plan=planList.get(position);
-                DBConnector dbConnector=new DBConnector(mContext);
-                dbConnector.open();
-                dbConnector.removePlan(plan);
-                dbConnector.close();
-
-                refreshView();
-
-            }
-        });
-
 
         checkBox=v.findViewById(R.id.checkbox);
         checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
