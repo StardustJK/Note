@@ -92,12 +92,12 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
                                 if(isTimeChanged()&&changetime){
                                     Log.i("hcccc","newtime:"+newtime);
 
-                                     modifiedPlan=new Plan(editText.getText().toString(), newtime);
+                                     modifiedPlan=new Plan(editText.getText().toString(), newtime,curPlan.getIsDone());
                                     changetime=false;
 
                                 }
                                 else {
-                                    modifiedPlan = new Plan(editText.getText().toString(), curPlan.getTime());
+                                    modifiedPlan = new Plan(editText.getText().toString(), curPlan.getTime(),curPlan.getIsDone());
                                     Log.i("hcccc","oldtime"+curPlan.getTime());
                                 }
                                 modifiedPlan.setId(curPlan.getId());

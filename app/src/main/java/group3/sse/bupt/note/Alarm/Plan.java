@@ -12,18 +12,18 @@ public class Plan {
     private long id;//自增长，建立是数据库的时候设置该列自增长
     private String content;
     private Calendar planTime;
-    private boolean isDone;
+    private int isDone;
 
 
-    public Plan(String content, String time) {
+    public Plan(String content, String time,int done) {
         this.content = content;
         setTime(time);
-        isDone=false;
+        isDone=done;
     }
 
     public Plan(){
         this.planTime = Calendar.getInstance();
-        isDone=false;
+        isDone=0;
     }
 
     public void setTime(String format){
@@ -65,10 +65,10 @@ public class Plan {
         this.id = id;
     }
 
-    public boolean getIsDone() {
+    public int getIsDone() {
         return isDone;
     }
-    public void setIsDone(boolean isDone){
+    public void setIsDone(int isDone){
         this.isDone=isDone;
     }
 

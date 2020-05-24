@@ -23,10 +23,9 @@ import android.widget.Filterable;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Calendar;
+
 import java.util.List;
 
-import group3.sse.bupt.note.Alarm.AlarmReceiver;
 import group3.sse.bupt.note.R;
 
 public class PlanAdapter extends BaseAdapter implements Filterable {
@@ -75,7 +74,7 @@ public class PlanAdapter extends BaseAdapter implements Filterable {
         TextView tv_time = (TextView)v.findViewById(R.id.tv_time);
 
         //Set text for TextView
-        tv_content.setText(planList.get(position).getContent());
+        //tv_content.setText(planList.get(position).getContent());
         tv_time.setText(planList.get(position).getTime());
 
         //Save plan id to tag
@@ -104,34 +103,33 @@ public class PlanAdapter extends BaseAdapter implements Filterable {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if(isChecked){
                     Plan plan=planList.get(position);
-//                    plan.setIsDone(true);
-//                    modifyPlan(plan);
+                    plan.setIsDone(1);
+                    modifyPlan(plan);
                     alarmUtils.cancelAlarm(plan);
                 }
                 else {
                     Plan plan=planList.get(position);
-//                    plan.setIsDone(false);
-//                    modifyPlan(plan);
-                   // cancaelAlarm(plan);
+                    plan.setIsDone(0);
+                    modifyPlan(plan);
                     alarmUtils.startAlarm(plan);
                 }
             }
         });
 
-//        //已完成
-//        if(planList.get(position).getIsDone()){
-//            //checkBox.setChecked(true);
-//            String content=planList.get(position).getContent();
-//            SpannableString sp = new SpannableString(content);
-//
-//            sp.setSpan(new StrikethroughSpan(), 0, content.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-//
-//            tv_content.setText(sp);
-//        }
-//        else{
-//           // checkBox.setChecked(false);
-//            tv_content.setText(planList.get(position).getContent());
-//        }
+        //已完成
+        if(planList.get(position).getIsDone()==1){
+            checkBox.setChecked(true);
+            String content=planList.get(position).getContent();
+            SpannableString sp = new SpannableString(content);
+
+            sp.setSpan(new StrikethroughSpan(), 0, content.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+            tv_content.setText(sp);
+        }
+        else{
+            checkBox.setChecked(false);
+            tv_content.setText(planList.get(position).getContent());
+        }
 
 
         return v;

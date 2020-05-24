@@ -18,6 +18,7 @@ public class DBConnector {
         PlanDatabase.ID,
         PlanDatabase.CONTENT,
         PlanDatabase.TIME,
+        PlanDatabase.ISDONE,
     };
 
     public DBConnector(Context context){
@@ -36,6 +37,7 @@ public class DBConnector {
         ContentValues contentValues=new ContentValues();
         contentValues.put(PlanDatabase.CONTENT,plan.getContent());
         contentValues.put(PlanDatabase.TIME,plan.getTime());
+        contentValues.put(PlanDatabase.ISDONE,plan.getIsDone());
         long insertId=db.insert(PlanDatabase.TABLE_NAME,null,contentValues);
         plan.setId(insertId);
         return plan;
@@ -46,7 +48,9 @@ public class DBConnector {
         Cursor cursor = db.query(PlanDatabase.TABLE_NAME,columns,PlanDatabase.ID + "=?",
                 new String[]{String.valueOf(id)},null,null, null, null);
         if (cursor != null) cursor.moveToFirst();
-        Plan e = new Plan(cursor.getString(cursor.getColumnIndex(PlanDatabase.CONTENT)),cursor.getString(cursor.getColumnIndex(PlanDatabase.TIME)));
+        Plan e = new Plan(cursor.getString(cursor.getColumnIndex(PlanDatabase.CONTENT)),
+                cursor.getString(cursor.getColumnIndex(PlanDatabase.TIME)),
+                cursor.getInt(cursor.getColumnIndex(PlanDatabase.ISDONE)));
         return e;
     }
 
@@ -60,6 +64,7 @@ public class DBConnector {
                 plan.setId(cursor.getLong(cursor.getColumnIndex(PlanDatabase.ID)));
                 plan.setContent(cursor.getString(cursor.getColumnIndex(PlanDatabase.CONTENT)));
                 plan.setTime(cursor.getString(cursor.getColumnIndex(PlanDatabase.TIME)));
+                plan.setIsDone(cursor.getInt(cursor.getColumnIndex(PlanDatabase.ISDONE)));
                 plans.add(plan);
             }
         }
@@ -70,6 +75,7 @@ public class DBConnector {
         ContentValues values = new ContentValues();
         values.put(PlanDatabase.CONTENT, plan.getContent());
         values.put(PlanDatabase.TIME, plan.getTime());
+        values.put(PlanDatabase.ISDONE, plan.getIsDone());
         // updating row
         return db.update(PlanDatabase.TABLE_NAME, values,
                 PlanDatabase.ID + "=?",new String[] { String.valueOf(plan.getId())});
