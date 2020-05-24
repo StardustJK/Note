@@ -11,7 +11,7 @@ public class NoteDatabase extends SQLiteOpenHelper {
     public static final String CONTENT="content";
     public static final String ID="_id";
     public static final String TIME="time";
-    public static final String MODE="mode";
+    public static final String TAG="mode";
 
     public NoteDatabase(Context context) {
         super(context, "notes", null, 1);
@@ -22,7 +22,7 @@ public class NoteDatabase extends SQLiteOpenHelper {
             +ID+" integer primary key autoincrement,"
             +CONTENT+" text not null,"
             +TIME+" text not null,"
-            +MODE+" integer default 1)";
+            +TAG+" integer default 1)";
 
 
     @Override

@@ -15,4 +15,6 @@
     <attr name="addTag" format="string"/>
     <attr name="addPlanTag" format="string"/>
     <attr name="toolbarTheme" format="string"/>
+    <attr name="toolbarColor" format="color"/>
+    <attr name="allNoteTag" format="string"/>
 </resources>

@@ -17,7 +17,7 @@ private static final String[] columns={
         NoteDatabase.ID,
         NoteDatabase.CONTENT,
         NoteDatabase.TIME,
-        NoteDatabase.MODE
+        NoteDatabase.TAG
 };
 public CRUD(Context context){
     dbHandler=new NoteDatabase(context);
@@ -33,7 +33,7 @@ public Note addNote(Note note){
     ContentValues contentValues=new ContentValues();
     contentValues.put(NoteDatabase.CONTENT,note.getContent());
     contentValues.put(NoteDatabase.TIME,note.getTime());
-    contentValues.put(NoteDatabase.MODE,note.getTag());
+    contentValues.put(NoteDatabase.TAG,note.getTag());
     long insertID=db.insert(NoteDatabase.TABLE_NAME,null,contentValues);
     note.setId(insertID);
     return note;
@@ -60,7 +60,7 @@ public List<Note> getAllNotes(){
             note.setId(cursor.getLong(cursor.getColumnIndex(NoteDatabase.ID)));
             note.setContent(cursor.getString(cursor.getColumnIndex(NoteDatabase.CONTENT)));
             note.setTime(cursor.getString(cursor.getColumnIndex(NoteDatabase.TIME)));
-            note.setTag(cursor.getInt(cursor.getColumnIndex(NoteDatabase.MODE)));
+            note.setTag(cursor.getInt(cursor.getColumnIndex(NoteDatabase.TAG)));
             notes.add(note);
         }
     }
@@ -72,7 +72,7 @@ public List<Note> getAllNotes(){
         ContentValues values = new ContentValues();
         values.put(NoteDatabase.CONTENT, note.getContent());
         values.put(NoteDatabase.TIME, note.getTime());
-        values.put(NoteDatabase.MODE, note.getTag());
+        values.put(NoteDatabase.TAG, note.getTag());
         // updating row
         return db.update(NoteDatabase.TABLE_NAME, values,
                 NoteDatabase.ID + "=?",new String[] { String.valueOf(note.getId())});
@@ -81,6 +81,10 @@ public List<Note> getAllNotes(){
     public void removeNote(Note note) {
         //remove a note according to ID value
         db.delete(NoteDatabase.TABLE_NAME, NoteDatabase.ID + "=" + note.getId(), null);
+    }
+    //删除一个分类下的所有笔记
+    public void removeAllNoteByTag(int tag){
+    db.delete(NoteDatabase.TABLE_NAME,NoteDatabase.TAG+"="+tag,null);
     }
 
 }

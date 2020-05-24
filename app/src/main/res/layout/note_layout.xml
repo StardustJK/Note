@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         android:text="Content"
         android:textSize="20sp"
-        android:textColor="@color/black"
+        android:textColor="?attr/tvMainColor"
         android:singleLine="true"/>
 
     <TextView

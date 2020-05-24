@@ -13,7 +13,7 @@
         android:theme="@style/DayTheme"
 
         >
-        <activity android:name=".Alarm.PlanActivity">
+        <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />
@@ -21,11 +21,10 @@
             </intent-filter>
         </activity>
         <activity android:name=".EditActivity"/>
-        <activity android:name=".MainActivity"/>
-        <receiver android:name=".Alarm.AlarmReceiver">
+        <activity android:name=".Alarm.PlanActivity"/>
+        <activity android:name=".UserSettingsActivity"/>
 
-        </receiver>
-
+        <receiver android:name=".Alarm.AlarmReceiver"/>
     </application>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <!-- 允许程序振动 -->
