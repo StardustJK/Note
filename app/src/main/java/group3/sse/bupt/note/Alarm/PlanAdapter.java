@@ -11,6 +11,7 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.StrikethroughSpan;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -38,12 +39,14 @@ public class PlanAdapter extends BaseAdapter implements Filterable {
     Button btn_delete;
     CheckBox checkBox;
     private AlarmManager alarmManager;
+    AlarmUtils alarmUtils;
 
     public PlanAdapter(Context context,List<Plan> planList){
         this.mContext=context;
         this.planList=planList;
         backupList=planList;
 
+        alarmUtils=new AlarmUtils(mContext);
 
     }
 
@@ -103,14 +106,14 @@ public class PlanAdapter extends BaseAdapter implements Filterable {
                     Plan plan=planList.get(position);
 //                    plan.setIsDone(true);
 //                    modifyPlan(plan);
-                    cancaelAlarm(plan);
+                    alarmUtils.cancelAlarm(plan);
                 }
                 else {
                     Plan plan=planList.get(position);
 //                    plan.setIsDone(false);
 //                    modifyPlan(plan);
                    // cancaelAlarm(plan);
-                    startAlarm(plan);
+                    alarmUtils.startAlarm(plan);
                 }
             }
         });
@@ -142,23 +145,7 @@ public class PlanAdapter extends BaseAdapter implements Filterable {
         refreshView();
     }
 
-    private void startAlarm(Plan p){
-        Calendar c=p.getPlanTime();
-        if(!c.before(Calendar.getInstance())){
-            Intent intent=new Intent(mContext,AlarmReceiver.class);
-            intent.putExtra("content",p.getContent());
-            intent.putExtra("id",(int)p.getId());
-            PendingIntent pendingIntent=PendingIntent.getBroadcast(mContext,(int)p.getId(),intent,PendingIntent.FLAG_ONE_SHOT);
-            alarmManager.setExact(AlarmManager.RTC_WAKEUP,c.getTimeInMillis(),pendingIntent);
-        }
-    }
 
-    private void cancaelAlarm(Plan p){
-        Intent intent=new Intent(mContext,AlarmReceiver.class);
-        PendingIntent pendingIntent=PendingIntent.getBroadcast(mContext,(int)p.getId(),intent,0);
-        alarmManager= (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
-        alarmManager.cancel(pendingIntent);
-    }
     @Override
     public Filter getFilter() {
         if (mFilter ==null){

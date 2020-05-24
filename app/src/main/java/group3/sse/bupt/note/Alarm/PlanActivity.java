@@ -62,6 +62,7 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
 
     //系统提醒
     private AlarmManager alarmManager;
+    AlarmUtils  alarmUtils;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,7 +72,7 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
         //系统提醒
         alarmManager= (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
-
+        alarmUtils=new AlarmUtils(context);
         //dialog
         AlertDialog.Builder alertbuidler = new AlertDialog.Builder(PlanActivity.this);
         inflate = LayoutInflater.from(this).inflate(R.layout.dialog_plan_edit, null);
@@ -206,42 +207,10 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
 
     }
 
-    //设置提醒
-    private void startAlarm(Plan p){
-        Calendar c=p.getPlanTime();
-        if(!c.before(Calendar.getInstance())){
-            Intent intent=new Intent(PlanActivity.this,AlarmReceiver.class);
-            Log.i("hcccc","设置提醒的content"+p.getContent());
-            Log.i("hcccc","设置提醒的id"+p.getId());
 
-            intent.putExtra("content",p.getContent());
-            intent.putExtra("id",(int)p.getId());
-            Log.i("hcccc","intent content"+intent.getExtras().getString("content"));
-            Log.i("hcccc","inten id"+intent.getExtras().getInt("id"));
-            PendingIntent pendingIntent=PendingIntent.getBroadcast(this,(int)p.getId(),intent,PendingIntent.FLAG_ONE_SHOT);
 
-            alarmManager.setExact(AlarmManager.RTC_WAKEUP,c.getTimeInMillis(),pendingIntent);
-        }
-    }
 
-    //设置多个提醒
-    private void startAlarms(List<Plan> plans){
-        for(int i=0;i<plans.size();i++)
-            startAlarm(plans.get(i));
-    }
 
-    //取消提醒
-    private void cancelAlarm(Plan p){
-        Intent intent=new Intent(this,AlarmReceiver.class);
-        PendingIntent pendingIntent=PendingIntent.getBroadcast(this,(int)p.getId(),intent,0);
-        alarmManager.cancel(pendingIntent);
-    }
-
-    //取消多个提醒
-    private void cancelAlarms(List<Plan> plans){
-        for(int i=0;i<plans.size();i++)
-            cancelAlarm(plans.get(i));
-    }
 
     //隐藏年份
     private void hideYear(DatePicker datePicker) {
@@ -297,11 +266,11 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
         DBConnector dbConnector=new DBConnector(context);
         dbConnector.open();
         if(planList.size()>0) {
-            cancelAlarms(planList);
+            alarmUtils.cancelAlarms(planList);
             planList.clear();
         }
         planList.addAll(dbConnector.getAllPlans());
-        startAlarms(planList);
+        alarmUtils.startAlarms(planList);
 
         dbConnector.close();
         adapter.notifyDataSetChanged();
