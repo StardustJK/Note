@@ -10,11 +10,12 @@ class PlanDatabase extends SQLiteOpenHelper {
     public static final String CONTENT = "content";
     public static final String ISDONE = "isdone";
     public static final String ID = "_id";
-    public static final String TIME = "time";
+    public static final String PLAN_TIME = "plan_time";
+    public static final String ADD_TIME = "add_time";
     public static final String MODE = "mode";
 
     public PlanDatabase(Context context){
-        super(context,"plans",null,2);
+        super(context,"plans",null,3);
     }
     @Override
     public void onCreate(SQLiteDatabase db) {
@@ -23,7 +24,8 @@ class PlanDatabase extends SQLiteOpenHelper {
                 + ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + CONTENT + " TEXT NOT NULL,"
                 +ISDONE+" INTEGER NOT NULL,"
-                + TIME + " TEXT NOT NULL)"
+                +ADD_TIME+" TEXT NOT NULL,"
+                + PLAN_TIME + " TEXT NOT NULL)"
         );
     }
 

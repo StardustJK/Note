@@ -31,7 +31,6 @@ public class PlanAdapter extends BaseAdapter implements Filterable {
     private List<Plan> planList;//这个数据是会改变的，所以要有个变量来备份一下原始数据
     PlanAdapter.MyFilter mFilter;
     CheckBox checkBox;
-    private AlarmManager alarmManager;
     AlarmUtils alarmUtils;
 
     public PlanAdapter(Context context,List<Plan> planList){
