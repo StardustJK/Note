@@ -55,7 +55,7 @@ public class DBConnector {
     }
 
     public List<Plan> getAllPlans(){
-        Cursor cursor = db.query(PlanDatabase.TABLE_NAME,columns,null,null,null, null, null);
+        Cursor cursor = db.query(PlanDatabase.TABLE_NAME,columns,null,null,null, null, PlanDatabase.ISDONE+","+PlanDatabase.TIME+" DESC");
 
         List<Plan> plans = new ArrayList<>();
         if(cursor.getCount() > 0){
