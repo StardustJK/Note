@@ -19,6 +19,8 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TimePicker;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -55,7 +57,8 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
 
 
     private Button btn_setTime;
-    private Button new_plan;
+    private FloatingActionButton new_plan;
+
     private Context context=this;
     private ListView lv;
     private PlanAdapter adapter;
