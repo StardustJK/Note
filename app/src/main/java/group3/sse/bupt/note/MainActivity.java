@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -79,6 +80,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private DisplayMetrics metrics;//手机宽高
     private TextView setting_text;//使设置能点击
     private ImageView setting_image;
+    private ImageView recyclebin_image;
+    private TextView recyclebin_text;
     private ListView lv_tag;
     private TextView add_tag;
     private ImageView add_tag_image;
@@ -87,6 +90,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private SharedPreferences sharedPreferences;
     //初始化自动创建的标签
     private String defaultTag="未分类_加密";
+
+    //回收站功能
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -164,6 +169,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
                 setting_image = customView.findViewById(R.id.menu_setting_image);
                 setting_text = customView.findViewById(R.id.menu_setting_text);
+                recyclebin_image=customView.findViewById(R.id.menu_recyclebin_image);
+                recyclebin_text=customView.findViewById(R.id.menu_recyclebin_text);
+
                 lv_tag = customView.findViewById(R.id.lv_tag);
                 add_tag = customView.findViewById(R.id.add_tag);
                 add_tag_image = customView.findViewById(R.id.add_tag_image);
@@ -196,6 +204,21 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     @Override
                     public void onClick(View v) {
                         Intent intent = new Intent(MainActivity.this, UserSettingsActivity.class);
+                        startActivityForResult(intent, 2);
+                    }
+                });
+                recyclebin_image.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(MainActivity.this, RecycleBinActivity.class);
+                        startActivityForResult(intent, 2);
+
+                    }
+                });
+                recyclebin_text.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(MainActivity.this, RecycleBinActivity.class);
                         startActivityForResult(intent, 2);
                     }
                 });
@@ -336,6 +359,26 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_menu, menu);
+        //search setting
+        MenuItem mSearch = menu.findItem(R.id.action_search);
+        androidx.appcompat.widget.SearchView mSearchView = (androidx.appcompat.widget.SearchView) mSearch.getActionView();
+
+        mSearchView.setQueryHint("Search");
+        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                adapter.getFilter().filter(newText);
+                return false;
+            }
+        });
+
+
+
         return super.onCreateOptionsMenu(menu);
 
     }
