@@ -145,6 +145,8 @@ public class EditActivity extends AppCompatActivity {
             old_content=getIntent.getStringExtra("content");
             old_time=getIntent.getStringExtra("time");
             old_tag=getIntent.getIntExtra("tag",1);
+            oldToSpan = ContentToSpanstr.Content_to_SpanStr(context, old_content);
+            et.append(oldToSpan);
            // et.setText(old_content);
             //et.setSelection(old_content.length());//设置光标位置到尾端
             tagSpinner.setSelection(old_tag-1);

@@ -585,7 +585,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     //动态申请权限
     //分享功能需要用到
     //新版的API中文件读写被视作危险权限，在配置文件中不生效，需要启动程序时动态申请
-    String[] permissions = new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+    String[] permissions = new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.RECORD_AUDIO,Manifest.permission.WAKE_LOCK
+
+    };
     List<String> mPermissionList = new ArrayList<>();
 
     // private ImageView welcomeImg = null;
