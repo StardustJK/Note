@@ -13,7 +13,7 @@
         android:theme="@style/DayTheme"
 
         >
-        <activity android:name=".Alarm.PlanActivity">
+        <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />
@@ -21,7 +21,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".EditActivity"/>
-        <activity android:name=".MainActivity"/>
+        <activity android:name=".Alarm.PlanActivity"/>
         <activity android:name=".UserSettingsActivity"/>
 
         <receiver android:name=".Alarm.AlarmReceiver"/>
@@ -31,5 +31,6 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <!-- 允许程序在手机屏幕关闭后后台进程仍然运行 -->
     <uses-permission android:name="android.permission.FLASHLIGHT"/>
-
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"></uses-permission>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 </manifest>

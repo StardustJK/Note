@@ -4,9 +4,15 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.hardware.biometrics.BiometricPrompt;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.CancellationSignal;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -15,6 +21,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import java.security.KeyException;
 import java.text.SimpleDateFormat;
@@ -22,12 +29,18 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-public class EditActivity extends BaseActivity {
+import com.mob.MobSDK;
 
+import cn.sharesdk.onekeyshare.OnekeyShare;
+import group3.sse.bupt.note.Share.Clipboard;
+import group3.sse.bupt.note.Share.Screenshot;
+
+public class EditActivity extends AppCompatActivity {
     private EditText et;
     private Toolbar myToolbar;
     private String content;
@@ -42,8 +55,17 @@ public class EditActivity extends BaseActivity {
     private int tag=1;
     private boolean tagChange=false;
     public Intent intent=new Intent();//发送信息的intent
+    //初始化自动创建的标签
+    private String defaultTag="未分类_加密";
 
+    //指纹认证需要用到的一些变量
+    private static final String TAG = "gryphon";
+    private BiometricPrompt mBiometricPrompt;
+    private CancellationSignal mCancellationSignal;
+    private BiometricPrompt.AuthenticationCallback mAuthenticationCallback;
 
+    //因为用到了指纹认证，所以规定了最低版本的API
+    @RequiresApi(api = Build.VERSION_CODES.P)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,14 +77,14 @@ public class EditActivity extends BaseActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);//设置toolbar代替actionbar
 
         final Spinner tagSpinner = (Spinner)findViewById(R.id.tag_spinner);
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 
-            List<String> tagList = Arrays.asList(sharedPreferences.getString("tagListString", "未分类").split("_")); //获取tags
-            ArrayAdapter<String> tagAdapter = new ArrayAdapter<String>(this,R.layout.simple_spinner_item, tagList);
-            tagAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            tagSpinner.setAdapter(tagAdapter);
-            int returnTag=sharedPreferences.getInt("curTag",1);
-            tagSpinner.setSelection(returnTag-1);//将spinner设为当前分类
+        List<String> tagList = Arrays.asList(sharedPreferences.getString("tagListString", defaultTag).split("_")); //获取tags
+        ArrayAdapter<String> tagAdapter = new ArrayAdapter<String>(this,R.layout.simple_spinner_item, tagList);
+        tagAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        tagSpinner.setAdapter(tagAdapter);
+        int returnTag=sharedPreferences.getInt("curTag",1);
+        tagSpinner.setSelection(returnTag-1);//将spinner设为当前分类
 
 
 
@@ -93,9 +115,6 @@ public class EditActivity extends BaseActivity {
             et.setSelection(old_content.length());//设置光标位置到尾端
             tagSpinner.setSelection(old_tag-1);
         }
-        if(isNightMode()) myToolbar.setNavigationIcon(getDrawable(R.drawable.ic_keyboard_arrow_left_white_24dp));
-        else myToolbar.setNavigationIcon(getDrawable(R.drawable.ic_keyboard_arrow_left_black_24dp));
-
         //点击toolbar上的返回键，自动保存笔记内容并返回到主页面
         myToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -107,14 +126,92 @@ public class EditActivity extends BaseActivity {
             }
         });
 
-    }
 
-    @Override
-    protected void needRefresh() {
-        setNightMode();
-        startActivity(new Intent(this, EditActivity.class));
-        //overridePendingTransition(R.anim.night_switch, R.anim.night_switch_over);
-        finish();
+        //加密标签的int值是2
+        int verifyMode=sharedPreferences.getInt("verify_mode",0);
+        if(old_tag==2 ){
+            //密码认证
+            if (verifyMode==1) {
+                final EditText et=new EditText(context);
+                AlertDialog passwordVerifyDialog = new AlertDialog.Builder(this).setTitle("密码验证")
+                        .setMessage("请输入密码")
+                        .setView(et)
+                        .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                //判断密码是否正确
+                                String input=et.getText().toString();
+                                String verifyPassword=sharedPreferences.getString("verify_password",null);
+
+                                if (!input.equals(verifyPassword)){
+                                    autoSetMessage();
+                                    setResult(RESULT_OK, intent);
+                                    finish();
+                                    Toast.makeText(context, "密码不正确", Toast.LENGTH_SHORT).show();
+
+                                }
+
+                                dialogInterface.dismiss();
+                            }
+                        }).create();
+                passwordVerifyDialog.show();
+            }
+            //指纹认证
+            else if (verifyMode==2) {
+                mBiometricPrompt = new BiometricPrompt.Builder(this)
+                        .setTitle("指纹验证")
+                        .setDescription("验证的是系统锁屏设置的指纹")
+                        .setNegativeButton("取消", getMainExecutor(), new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                autoSetMessage();
+                                setResult(RESULT_OK, intent);
+                                finish();
+                                Log.i(TAG, "Cancel button clicked");
+                            }
+                        })
+                        .build();
+
+                mCancellationSignal = new CancellationSignal();
+
+                mCancellationSignal.setOnCancelListener(new CancellationSignal.OnCancelListener() {
+                    @Override
+                    public void onCancel() {
+                        //handle cancel result
+                        Log.i(TAG, "Canceled");
+                    }
+                });
+
+
+                mAuthenticationCallback = new BiometricPrompt.AuthenticationCallback() {
+                    @Override
+                    public void onAuthenticationError(int errorCode, CharSequence errString) {
+                        super.onAuthenticationError(errorCode, errString);
+                        autoSetMessage();
+                        setResult(RESULT_OK, intent);
+                        finish();
+                        Log.i(TAG, "onAuthenticationError " + errString);
+                    }
+
+                    @Override
+                    public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result) {
+                        super.onAuthenticationSucceeded(result);
+
+                        Log.i(TAG, "onAuthenticationSucceeded " + result.toString());
+                    }
+
+                    @Override
+                    public void onAuthenticationFailed() {
+                        super.onAuthenticationFailed();
+
+                        Log.i(TAG, "onAuthenticationFailed ");
+                    }
+                };
+
+                mBiometricPrompt.authenticate(mCancellationSignal, getMainExecutor(), mAuthenticationCallback);
+            }
+        }
+
     }
 
     //判断按键情况
@@ -179,20 +276,20 @@ public class EditActivity extends BaseActivity {
                 new AlertDialog.Builder(EditActivity.this)
                         .setMessage("确定删除吗？")
                         .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        if(openMode==4){
-                            intent.putExtra("mode",-1);
-                            setResult(RESULT_OK,intent);
-                        }
-                        else{
-                            intent.putExtra("mode",2);
-                            intent.putExtra("id",id);
-                            setResult(RESULT_OK,intent);
-                        }
-                        finish();
-                    }
-                }).setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                if(openMode==4){
+                                    intent.putExtra("mode",-1);
+                                    setResult(RESULT_OK,intent);
+                                }
+                                else{
+                                    intent.putExtra("mode",2);
+                                    intent.putExtra("id",id);
+                                    setResult(RESULT_OK,intent);
+                                }
+                                finish();
+                            }
+                        }).setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();//关闭对话框
@@ -200,6 +297,33 @@ public class EditActivity extends BaseActivity {
                 }).create().show();
                 break;
 
+            case R.id.menu_copy:
+                //将笔记内容复制到剪切板
+                Clipboard.CopyTextToClipboard(context,et.getText().toString());
+                Toast.makeText(context, "笔记内容已复制到剪切板", Toast.LENGTH_SHORT).show();
+                break;
+
+            case R.id.menu_screenshot:
+                //将笔记保存为图片
+                Bitmap bmp=Screenshot.getViewBitmap(findViewById(R.id.et));
+                Screenshot.savingBitmapIntoFile(bmp,this);
+                Toast.makeText(context, "图片已保存到手机", Toast.LENGTH_SHORT).show();
+                break;
+            case R.id.menu_share:
+                OnekeyShare oks = new OnekeyShare();
+                // title标题，微信、QQ和QQ空间等平台使用
+                oks.setTitle("标题");
+                // titleUrl QQ和QQ空间跳转链接
+                oks.setTitleUrl("http://sharesdk.cn");
+                // text是分享文本，所有平台都需要这个字段
+                oks.setText("我是分享文本");
+                // setImageUrl是网络图片的url
+                oks.setImageUrl("https://hmls.hfbank.com.cn/hfapp-api/9.png");
+                // url在微信、Facebook等平台中使用
+                oks.setUrl("http://sharesdk.cn");
+                // 启动分享GUI
+                oks.show(MobSDK.getContext());
+                break;
         }
         return super.onOptionsItemSelected(item);
     }

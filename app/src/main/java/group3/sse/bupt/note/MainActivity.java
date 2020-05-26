@@ -1,19 +1,27 @@
 package group3.sse.bupt.note;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
-import android.app.Activity;
+import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.hardware.biometrics.BiometricPrompt;
 import android.media.Image;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.CancellationSignal;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
@@ -45,14 +53,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
-public class MainActivity extends BaseActivity implements AdapterView.OnItemClickListener {
+//主界面
+public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
 
 
     private NoteDatabase dbHelper;
     private NoteAdapter adapter;
     private TagAdapter tagAdapter;
     private List<Note> noteList = new ArrayList<>();
-
+    //private List<HashMap<Long,Note>> noteList2=new ArrayList<>();
 
     FloatingActionButton btn;
     TextView textView;
@@ -76,33 +85,27 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
     private ImageView allNote_image;
     private TextView allNote;
     private SharedPreferences sharedPreferences;
+    //初始化自动创建的标签
+    private String defaultTag="未分类_加密";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        if(sharedPreferences.contains("nightMode")) {
-            boolean nightMode = sharedPreferences.getBoolean("nightMode", false);
-            if(nightMode)setTheme(R.style.NightTheme);
-            else setTheme(R.style.DayTheme);
-        }
-
+        checkPermission();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         btn = findViewById(R.id.floatingActionButton1);
         listView = findViewById(R.id.listView);
         myToolbar = findViewById(R.id.myToolbar);
         adapter = new NoteAdapter(context, noteList);
-
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putInt("curTag", 0);
-        if(!sharedPreferences.contains("reverseMode"))
-        editor.putBoolean("reverseMode", false);
+        //editor.putBoolean("reverseMode", false);
         editor.commit();
 
 
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(this);
-        listView.setOnItemLongClickListener(ListViewLongClickListener);
 
         myToolbar.setTitle("全部笔记");
 
@@ -112,10 +115,7 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
         refreshListView();
 
         initPopUpView();
-        if (super.isNightMode())
-            myToolbar.setNavigationIcon(getDrawable(R.drawable.ic_menu_white_24dp));
-        else myToolbar.setNavigationIcon(getDrawable(R.drawable.ic_menu_black_24dp)); // 三道杠
-
+        myToolbar.setNavigationIcon(R.drawable.ic_menu_black_24dp);//换成菜单图标
         myToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -134,17 +134,6 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
         });
 
 
-    }
-
-    @Override
-    protected void needRefresh() {
-        setNightMode();
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra("opMode", 10);
-        startActivity(intent);
-        //overridePendingTransition(R.anim.night_switch, R.anim.night_switch_over);
-        if (popupWindow.isShowing()) popupWindow.dismiss();
-        finish();
     }
 
     public void initPopUpView() {
@@ -173,9 +162,6 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                 popupCover.showAtLocation(main, Gravity.NO_GRAVITY, 0, 0);
                 popupWindow.showAtLocation(main, Gravity.NO_GRAVITY, 0, 0);
 
-                if (isNightMode()) popupWindow.setBackgroundDrawable(new ColorDrawable(Color.LTGRAY));
-                popupWindow.setBackgroundDrawable(new ColorDrawable(Color.WHITE));
-
                 setting_image = customView.findViewById(R.id.menu_setting_image);
                 setting_text = customView.findViewById(R.id.menu_setting_text);
                 lv_tag = customView.findViewById(R.id.lv_tag);
@@ -189,7 +175,7 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                 allNote_image.setOnClickListener(allNoteListener);
                 add_tag.setOnClickListener(add_tagListener);
                 add_tag_image.setOnClickListener(add_tagListener);
-                List<String> tagList = Arrays.asList(sharedPreferences.getString("tagListString", "未分类").split("_")); //获取tags
+                List<String> tagList = Arrays.asList(sharedPreferences.getString("tagListString", defaultTag).split("_")); //获取tags
                 tagAdapter = new TagAdapter(context, tagList, numOfTagNotes(tagList));
                 lv_tag.setAdapter(tagAdapter);
 
@@ -279,9 +265,9 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                 break;
             case 2://从设置返回到全部笔记，并能自动刷新
                 if(data!=null){
-                boolean reverseMode= Objects.requireNonNull(data.getExtras()).getBoolean("reverseMode",false);
-                if(reverseMode)refreshListView();
-        }}
+                    boolean reverseMode= Objects.requireNonNull(data.getExtras()).getBoolean("reverseMode",false);
+                    if(reverseMode)refreshListView();
+                }}
     }
 
     //刷新笔记列表
@@ -331,6 +317,9 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
         switch (parent.getId()) {
             case R.id.listView:
                 Note curNote = (Note) parent.getItemAtPosition(position);//当前笔记
+
+
+
                 Intent intent = new Intent(MainActivity.this, EditActivity.class);
                 intent.putExtra("content", curNote.getContent());
                 intent.putExtra("id", curNote.getId());
@@ -343,43 +332,7 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
 
     }
 
-    //长按笔记列表中某个元素，删除该笔记
-    AdapterView.OnItemLongClickListener ListViewLongClickListener = new AdapterView.OnItemLongClickListener() {
-
-        @Override
-        public boolean onItemLongClick(final AdapterView<?> parent, View view, final int position, long id) {
-            switch (parent.getId()) {
-                case R.id.listView:
-                    new AlertDialog.Builder(MainActivity.this)
-                            .setMessage("确定删除该笔记吗？")
-                            .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    Note curNote = (Note) parent.getItemAtPosition(position);//当前笔记
-                                    curNote.setId(curNote.getId());
-                                    CRUD op = new CRUD(context);
-                                    op.open();
-                                    op.removeNote(curNote);
-                                    op.close();
-                                    int curTag = sharedPreferences.getInt("curTag", 1);
-                                    if (curTag == 0) refreshListView();
-                                    else refreshTagListView(curTag);
-
-                                }
-                            }).setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();//关闭对话框
-                        }
-                    }).create().show();
-
-                    return true;
-            }
-            return false;
-        }
-    };
-
-    @Override//生成主页面的toolbar
+    @Override//主页面的toolbar
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_menu, menu);
@@ -442,10 +395,11 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
     //刷新标签列表
     private void refreshTagList() {
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        List<String> tagList = Arrays.asList(sharedPreferences.getString("tagListString", "未分类").split("_")); //获取tags
+        List<String> tagList = Arrays.asList(sharedPreferences.getString("tagListString", defaultTag).split("_")); //获取tags
         tagAdapter = new TagAdapter(context, tagList, numOfTagNotes(tagList));
         lv_tag.setAdapter(tagAdapter);
         tagAdapter.notifyDataSetChanged();
+
     }
 
     //统计不同标签的笔记数
@@ -501,9 +455,9 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                         public void onClick(DialogInterface dialogInterface, int i) {
                             //按下确定键后的事件
                             String name = et.getText().toString();
-                            List<String> tagList = Arrays.asList(sharedPreferences.getString("tagListString", "未分类").split("_")); //获取tags
+                            List<String> tagList = Arrays.asList(sharedPreferences.getString("tagListString", defaultTag).split("_")); //获取tags
                             if (!tagList.contains(name)) {
-                                String oldTagListString = sharedPreferences.getString("tagListString", "未分类");
+                                String oldTagListString = sharedPreferences.getString("tagListString", defaultTag);
                                 String newTagListString = oldTagListString + "_" + name;
                                 SharedPreferences.Editor editor = sharedPreferences.edit();
                                 editor.putString("tagListString", newTagListString);
@@ -522,7 +476,7 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
     AdapterView.OnItemClickListener lv_tagListener = new AdapterView.OnItemClickListener() {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            List<String> tagList = Arrays.asList(sharedPreferences.getString("tagListString", "未分类").split("_")); //获取tags
+            List<String> tagList = Arrays.asList(sharedPreferences.getString("tagListString", defaultTag).split("_")); //获取tags
             int tag = position + 1;
             List<Note> temp = new ArrayList<>();
             for (int i = 0; i < noteList.size(); i++) {
@@ -577,7 +531,7 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                                                 op.close();
                                             }
                                         }
-                                        List<String> tagList = Arrays.asList(sharedPreferences.getString("tagListString", "未分类").split("_")); //获取tags
+                                        List<String> tagList = Arrays.asList(sharedPreferences.getString("tagListString", defaultTag).split("_")); //获取tags
                                         if (tag + 1 < tagList.size()) {
                                             for (int j = tag + 1; j < tagList.size() + 1; j++) {
                                                 //大于被删除的tag的所有tag减一
@@ -627,6 +581,48 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
         }
     };
 
+
+    //动态申请权限
+    //分享功能需要用到
+    //新版的API中文件读写被视作危险权限，在配置文件中不生效，需要启动程序时动态申请
+    String[] permissions = new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+    List<String> mPermissionList = new ArrayList<>();
+
+    // private ImageView welcomeImg = null;
+    private static final int PERMISSION_REQUEST = 1;
+    // 检查权限
+    private void checkPermission() {
+        mPermissionList.clear();
+
+        //判断哪些权限未授予
+        for (int i = 0; i < permissions.length; i++) {
+            if (ContextCompat.checkSelfPermission(this, permissions[i]) != PackageManager.PERMISSION_GRANTED) {
+                mPermissionList.add(permissions[i]);
+            }
+        }
+        //判断是否为空
+        if (mPermissionList.isEmpty()) {//未授予的权限为空，表示都授予了
+
+        } else {//请求权限方法
+            String[] permissions = mPermissionList.toArray(new String[mPermissionList.size()]);//将List转为数组
+            ActivityCompat.requestPermissions(MainActivity.this, permissions, PERMISSION_REQUEST);
+        }
+    }
+
+    //响应授权
+    //这里不管用户是否拒绝，都进入首页，不再重复申请权限
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case PERMISSION_REQUEST:
+
+                break;
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+                break;
+        }
+    }
 
 }
 
