@@ -111,6 +111,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(this);
+        listView.setOnItemLongClickListener(ListViewLongClickListener);
 
         myToolbar.setTitle("全部笔记");
 
@@ -355,6 +356,41 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     }
 
+    //长按笔记列表中某个元素，删除该笔记
+    AdapterView.OnItemLongClickListener ListViewLongClickListener = new AdapterView.OnItemLongClickListener() {
+
+        @Override
+        public boolean onItemLongClick(final AdapterView<?> parent, View view, final int position, long id) {
+            switch (parent.getId()) {
+                case R.id.listView:
+                    new AlertDialog.Builder(MainActivity.this)
+                            .setMessage("确定删除该笔记吗？")
+                            .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Note curNote = (Note) parent.getItemAtPosition(position);//当前笔记
+                                    curNote.setId(curNote.getId());
+                                    CRUD op = new CRUD(context);
+                                    op.open();
+                                    op.removeNote(curNote);
+                                    op.close();
+                                    int curTag = sharedPreferences.getInt("curTag", 1);
+                                    if (curTag == 0) refreshListView();
+                                    else refreshTagListView(curTag);
+
+                                }
+                            }).setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();//关闭对话框
+                        }
+                    }).create().show();
+
+                    return true;
+            }
+            return false;
+        }
+    };
     @Override//主页面的toolbar
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
