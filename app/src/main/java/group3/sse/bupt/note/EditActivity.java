@@ -226,6 +226,8 @@ public class EditActivity extends AppCompatActivity {
                     }
                 };
                 spanStr.setSpan(clickableSpan, 0, voice.length(), Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+                ImageSpan imageSpan=new ImageSpan(context,R.drawable.voice);
+                spanStr.setSpan(imageSpan,0,voice.length(),Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
                 et.append(spanStr);
             }
         });
