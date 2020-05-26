@@ -175,7 +175,7 @@ public class UserSettingsActivity extends BaseActivity {
                                 //密码
                                 case 1:
                                     //先判断之前是否已经有密码
-                                    if (!sharedPreferences.getString("verify_password",null).equals(null)){
+                                    if (sharedPreferences.contains("verify_password")){
                                         //先验证之前的密码
                                         final EditText pet=new EditText(context);
                                         AlertDialog passwordVerifyDialog = new AlertDialog.Builder(context).setTitle("修改密码")

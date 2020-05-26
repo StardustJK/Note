@@ -312,15 +312,15 @@ public class EditActivity extends AppCompatActivity {
             case R.id.menu_share:
                 OnekeyShare oks = new OnekeyShare();
                 // title标题，微信、QQ和QQ空间等平台使用
-                oks.setTitle("标题");
+                //oks.setTitle("标题");
                 // titleUrl QQ和QQ空间跳转链接
-                oks.setTitleUrl("http://sharesdk.cn");
+                //oks.setTitleUrl("http://sharesdk.cn");
                 // text是分享文本，所有平台都需要这个字段
-                oks.setText("我是分享文本");
+                oks.setText(et.getText().toString());
                 // setImageUrl是网络图片的url
-                oks.setImageUrl("https://hmls.hfbank.com.cn/hfapp-api/9.png");
+                //oks.setImageUrl("https://hmls.hfbank.com.cn/hfapp-api/9.png");
                 // url在微信、Facebook等平台中使用
-                oks.setUrl("http://sharesdk.cn");
+                //oks.setUrl("http://sharesdk.cn");
                 // 启动分享GUI
                 oks.show(MobSDK.getContext());
                 break;
