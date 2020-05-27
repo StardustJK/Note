@@ -8,6 +8,7 @@ import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import group3.sse.bupt.note.Alarm.PlanActivity;
 
 import android.Manifest;
 import android.content.Context;
@@ -45,6 +46,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
@@ -139,8 +141,30 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             }
         });
 
+        BottomNavigationView BottomNavigation = (BottomNavigationView) findViewById(R.id.bottomNavigation);
+        BottomNavigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
     }
+    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
+            = new BottomNavigationView.OnNavigationItemSelectedListener() {
+
+        @Override
+        public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+            switch (menuItem.getItemId()) {
+                case R.id.bottom_bar_note:
+
+                    return true;
+                case R.id.bottom_bar_plan:
+                    Intent intent=new Intent(MainActivity.this, PlanActivity.class);
+                    startActivity(intent);
+                    overridePendingTransition(0,0);
+                    MainActivity.this.finish();
+                    return true;
+            }
+
+            return false;
+        }
+    };
 
     public void initPopUpView() {
         layoutInflater = (LayoutInflater) MainActivity.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);

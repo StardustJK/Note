@@ -6,17 +6,27 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical">
-<!--        <Button-->
-<!--            android:id="@+id/new_plan"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:text="new plan" />-->
-        <ListView
-            android:id="@+id/lv"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:divider="?attr/lvBackground"
-            android:dividerHeight="8dp">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/myToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:elevation="10dp"
+        android:background="?attr/toolbarColor"
+        android:titleTextColor="?titleColor"
+        android:theme="?attr/toolbarTheme"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+
+        />
+
+    <ListView
+        android:id="@+id/lv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:divider="?attr/lvBackground"
+        android:layout_marginTop="8dp"
+        android:layout_below="@id/myToolbar"
+        android:dividerHeight="8dp">
 
         </ListView>
 
@@ -33,5 +43,16 @@
         app:backgroundTint="@color/CadetBlue"
         app:srcCompat="@drawable/ic_add_black_24dp"
         tools:ignore="RelativeOverlap" />
-    </RelativeLayout>
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="0dp"
+        android:background="@color/CadetBlue"
+        app:menu="@menu/bottom_bar"
+
+        />
+
+</RelativeLayout>
 
