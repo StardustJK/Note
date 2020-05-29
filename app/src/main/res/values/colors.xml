@@ -31,4 +31,5 @@
 
 
     <color name="toolbar">#000000</color>
+    <color name="transparent">#FFF</color>
 </resources>
