@@ -10,3 +10,5 @@
 /captures
 .externalNativeBuild
 .idea/jarRepositories.xml
+gradle/wrapper/gradle-wrapper.properties
+build.gradle
