@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.CancellationSignal;
 import android.preference.PreferenceManager;
+import android.text.InputType;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -133,6 +134,7 @@ public class EditActivity extends AppCompatActivity {
             //密码认证
             if (verifyMode==1) {
                 final EditText et=new EditText(context);
+                et.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
                 AlertDialog passwordVerifyDialog = new AlertDialog.Builder(this).setTitle("密码验证")
                         .setMessage("请输入密码")
                         .setView(et)
