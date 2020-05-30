@@ -112,5 +112,7 @@
         <item name="android:colorControlActivated">@color/cover</item>
         <item name="android:colorControlNormal">@color/near_white</item>
     </style>
-
+    <style name="TransparentDialog" parent="Theme.AppCompat.Dialog">
+        <item name="android:windowBackground">@color/transparent</item>
+    </style>
 </resources>
