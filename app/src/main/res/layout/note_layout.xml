@@ -2,11 +2,11 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingLeft="10dp"
-    android:paddingRight="10dp"
+    android:paddingLeft="12dp"
+    android:paddingRight="12dp"
     android:paddingTop="5dp"
     android:paddingBottom="12dp"
-    android:background="@drawable/note_shape"
+    android:background="@drawable/plan_shape"
     android:outlineAmbientShadowColor="@color/black">
 
     <TextView
@@ -14,7 +14,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Content"
-        android:textSize="20sp"
+        android:textSize="20dp"
+        android:layout_marginLeft="18dp"
+        android:layout_marginTop="8dp"
+
         android:textColor="?attr/tvMainColor"
         android:singleLine="true"/>
 
@@ -23,7 +26,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Time"
-        android:textSize="16dp"
-        android:textColor="@color/CadetBlue"/>
+        android:textSize="12dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginLeft="18dp"
+
+        android:textColor="?attr/tvSubColor"/>
 
 </LinearLayout>

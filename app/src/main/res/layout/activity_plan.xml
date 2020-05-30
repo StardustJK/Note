@@ -1,5 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
-
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -12,7 +10,7 @@
         android:id="@+id/myToolbar"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:elevation="10dp"
+        android:elevation="5dp"
         android:background="?attr/toolbarColor"
         android:titleTextColor="?titleColor"
         android:theme="?attr/toolbarTheme"
@@ -27,9 +25,11 @@
         android:divider="?attr/lvBackground"
         android:layout_marginTop="8dp"
         android:layout_below="@id/myToolbar"
+        android:layout_marginBottom="68dp"
+
         android:dividerHeight="8dp">
 
-        </ListView>
+    </ListView>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/new_plan"
@@ -49,7 +49,6 @@
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="0dp"
         android:background="@color/CadetBlue"
         app:menu="@menu/bottom_bar"
 
