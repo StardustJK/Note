@@ -156,6 +156,7 @@ public class EditActivity extends AppCompatActivity {
                                 dialogInterface.dismiss();
                             }
                         }).create();
+                passwordVerifyDialog.setCancelable(false);
                 passwordVerifyDialog.getWindow().setDimAmount(1.0f);
                 passwordVerifyDialog.show();
             }
