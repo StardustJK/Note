@@ -5,12 +5,23 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.Matrix;
 import android.hardware.biometrics.BiometricPrompt;
+import android.media.MediaPlayer;
+import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CancellationSignal;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.text.InputType;
+import android.provider.MediaStore;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.format.DateFormat;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
+import android.text.style.ImageSpan;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -20,15 +31,19 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.security.KeyException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
@@ -56,6 +71,21 @@ public class EditActivity extends AppCompatActivity {
     private int tag=1;
     private boolean tagChange=false;
     public Intent intent=new Intent();//发送信息的intent
+
+
+    //开始录音、结束录音
+    private Button record_start;
+    private Button record_stop;
+    //录音名称、录音存放路径
+    private String fileName;
+    private String filePath;
+    //录音器
+    private MediaRecorder mediaRecorder;
+    //选择照片
+    private Button choose_photo;
+    //处理后的文本
+    private SpannableString oldToSpan;
+
     //初始化自动创建的标签
     private String defaultTag="未分类_加密";
 
@@ -68,10 +98,14 @@ public class EditActivity extends AppCompatActivity {
     //因为用到了指纹认证，所以规定了最低版本的API
     @RequiresApi(api = Build.VERSION_CODES.P)
     @Override
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.edit_layout);
         et=findViewById(R.id.et);
+        //可以点击播放语音
+        et.setMovementMethod(LinkMovementMethod.getInstance());
+
         myToolbar=findViewById(R.id.myToolbar);
         setSupportActionBar(myToolbar);
         getSupportActionBar().setHomeButtonEnabled(true);
@@ -112,8 +146,10 @@ public class EditActivity extends AppCompatActivity {
             old_content=getIntent.getStringExtra("content");
             old_time=getIntent.getStringExtra("time");
             old_tag=getIntent.getIntExtra("tag",1);
-            et.setText(old_content);
-            et.setSelection(old_content.length());//设置光标位置到尾端
+            oldToSpan = ContentToSpanstr.Content_to_SpanStr(context, old_content);
+            et.append(oldToSpan);
+           // et.setText(old_content);
+            //et.setSelection(old_content.length());//设置光标位置到尾端
             tagSpinner.setSelection(old_tag-1);
         }
         //点击toolbar上的返回键，自动保存笔记内容并返回到主页面
@@ -124,6 +160,101 @@ public class EditActivity extends AppCompatActivity {
                 setResult(RESULT_OK,intent);
                 finish();
 
+            }
+        });
+
+        record_start = (Button) findViewById(R.id.record_start);
+        record_stop = (Button) findViewById(R.id.record_stop);
+
+        //设置按钮可否点击
+        record_start.setEnabled(true);
+        record_stop.setEnabled(false);
+        record_start.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //设置按钮可否点击
+                record_start.setEnabled(false);
+                record_stop.setEnabled(true);
+
+                //创建文件名和路径名
+                fileName = DateFormat.format("yyyyMMdd_HH：mm：ss", Calendar.getInstance(Locale.CHINA)) + ".mp3";
+                filePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + fileName;
+
+                mediaRecorder = new MediaRecorder();
+                mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);//设置麦克风
+                mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+                //设置文件输出格式THREE_GPP(3gp格式，H263视频/ARM音频编码)
+                // MPEG-4、RAW_AMR(只支持音频且音频编码要求为AMR_NB)
+                mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+                //设置音频文件的编码：AAC/AMR_NB/AMR_MB/Default 声音的（波形）的采样
+                mediaRecorder.setOutputFile(filePath);//设置路径
+                try {
+                    mediaRecorder.prepare();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                mediaRecorder.start();
+
+                //et.append("\uD83C\uDFA4");
+                //et.append("\n");
+
+                //音频在edittext存储的路径
+                String voice = "<voice src='" + filePath + "'/>";
+                SpannableString spanStr = new SpannableString(voice);
+
+                ClickableSpan clickableSpan = new ClickableSpan() {
+                    @Override
+                    public void onClick(View view) {
+                        //实现点击事件
+                        MediaPlayer mp = new MediaPlayer();
+                        try {
+                            mp.setDataSource(filePath);
+                            mp.prepare();
+                            mp.start();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                            @Override
+                            public void onCompletion(MediaPlayer mediaPlayer) {
+                                if (mediaPlayer != null) {
+                                    mediaPlayer.stop();
+                                    mediaPlayer.release();
+                                }
+                            }
+                        });
+                    }
+                };
+                spanStr.setSpan(clickableSpan, 0, voice.length(), Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+                ImageSpan imageSpan=new ImageSpan(context,R.drawable.voice);
+                spanStr.setSpan(imageSpan,0,voice.length(),Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+                et.append(spanStr);
+            }
+        });
+
+//结束录音
+        record_stop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //设置按钮可否点击
+                record_start.setEnabled(true);
+                record_stop.setEnabled(false);
+                //结束录音
+                mediaRecorder.stop();
+                mediaRecorder.release();
+                mediaRecorder = null;
+
+            }
+        });
+
+        choose_photo = (Button) findViewById(R.id.choose_photo);
+        choose_photo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(Intent.ACTION_PICK, null);
+                intent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*");
+                startActivityForResult(intent, 1);
             }
         });
 
@@ -217,7 +348,38 @@ public class EditActivity extends AppCompatActivity {
         }
 
     }
-
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            Bitmap bitmap = null;
+            try {
+                bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), data.getData());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            int width = bitmap.getWidth();
+            int height = bitmap.getHeight();
+            if (width > 1000 || height > 2000) {
+                // 缩小到十分之一
+                float scaleWidth = (float) 0.2;
+                float scaleHeight = (float) 0.2;
+                //取得想要缩放的matrix参数
+                Matrix matrix = new Matrix();
+                matrix.postScale(scaleWidth, scaleHeight);
+                // 得到新的图片
+                bitmap = Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, true);
+            }
+            //选取照片存储在edittext的路径
+            String photopath = "<photo src='" + data.getData() + "'/>";
+            //String photopath = "<photo src='" + data.getData().toString() + "'/>";
+            SpannableString spanStr = new SpannableString(photopath);
+            ImageSpan imageSpan = new ImageSpan(this, bitmap);
+            spanStr.setSpan(imageSpan, 0, photopath.length(), Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+            et.append(spanStr);
+        }
+    }
     //判断按键情况
     public boolean onKeyDown(int keyCode, KeyEvent event){
         if(keyCode==KeyEvent.KEYCODE_HOME){

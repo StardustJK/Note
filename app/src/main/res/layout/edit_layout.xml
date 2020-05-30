@@ -32,14 +32,27 @@
 <EditText
         android:id="@+id/et"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="200dp"
         android:gravity="top"
         android:background="@null"
         android:textColor="?attr/tvMainColor"
 
-
         >
 
     </EditText>
-
+    <Button
+        android:id="@+id/record_start"
+        android:text="开始录音"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    <Button
+        android:id="@+id/record_stop"
+        android:text="停止录音"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    <Button
+        android:id="@+id/choose_photo"
+        android:text="选择图片"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
 </LinearLayout>

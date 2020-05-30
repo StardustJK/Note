@@ -7,9 +7,11 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -19,14 +21,17 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TimePicker;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import androidx.appcompat.widget.Toolbar;
 import group3.sse.bupt.note.CRUD;
 import group3.sse.bupt.note.MainActivity;
 import group3.sse.bupt.note.Note;
@@ -70,10 +75,56 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
     private AlarmManager alarmManager;
     AlarmUtils  alarmUtils;
 
+    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
+            = new BottomNavigationView.OnNavigationItemSelectedListener() {
+
+        @Override
+        public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+            switch (menuItem.getItemId()) {
+                case R.id.bottom_bar_note:
+                    Intent intent=new Intent(PlanActivity.this, MainActivity.class);
+                    startActivity(intent);
+                    overridePendingTransition(0,0);
+                    PlanActivity.this.finish();
+                    return true;
+                case R.id.bottom_bar_plan:
+
+                    return true;
+
+
+            }
+
+
+
+            return false;
+        }
+    };
+
+    private Toolbar myToolbar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_plan);
+        BottomNavigationView BottomNavigation = (BottomNavigationView) findViewById(R.id.bottomNavigation);
+
+        BottomNavigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+        BottomNavigation.setSelectedItemId(R.id.bottom_bar_plan);
+
+        myToolbar = findViewById(R.id.myToolbar);
+        myToolbar.setTitle("  待办");
+        myToolbar.setLogo(R.drawable.ic_plan_white_24dp);
+
+        //点击toolbar上的返回键，自动保存笔记内容并返回到主页面
+        myToolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                PlanActivity.this.finish();
+
+            }
+        });
+
 
         //系统提醒
         alarmManager= (AlarmManager) getSystemService(Context.ALARM_SERVICE);
@@ -86,7 +137,7 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
         btn_setTime=inflate.findViewById(R.id.btn_time);
         alertbuidler.setView(inflate);
         //新建/修改plan框
-        modifyDialog= alertbuidler.setPositiveButton("完成",
+        modifyDialog= alertbuidler.setTitle("待办事项").setPositiveButton("完成",
                 new DialogInterface.OnClickListener() {
 
                     @Override
@@ -198,6 +249,8 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
                 mode=1;
                 editText.setText("");
                 modifyDialog.show();
+                modifyDialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.CadetBlue));
+
 
             }
         });
@@ -334,6 +387,8 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
               editText.setText(curPlan.getContent());
               oldtime= String.valueOf(curPlan.getPlanTime());
               modifyDialog.show();
+              modifyDialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.CadetBlue));
+
               break;
       }
 
