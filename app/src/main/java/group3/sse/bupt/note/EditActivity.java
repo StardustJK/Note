@@ -32,6 +32,8 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -73,7 +75,7 @@ public class EditActivity extends AppCompatActivity {
 
 
     //开始录音、结束录音
-    private Button record_start;
+    private ImageView record_start;
     private Button record_stop;
     //录音名称、录音存放路径
     private String fileName;
@@ -81,7 +83,7 @@ public class EditActivity extends AppCompatActivity {
     //录音器
     private MediaRecorder mediaRecorder;
     //选择照片
-    private Button choose_photo;
+    private ImageView choose_photo;
     //处理后的文本
     private SpannableString oldToSpan;
 
@@ -94,6 +96,9 @@ public class EditActivity extends AppCompatActivity {
     private CancellationSignal mCancellationSignal;
     private BiometricPrompt.AuthenticationCallback mAuthenticationCallback;
 
+
+
+    private LinearLayout recordLayout;
     //因为用到了指纹认证，所以规定了最低版本的API
     @RequiresApi(api = Build.VERSION_CODES.P)
     @Override
@@ -101,6 +106,9 @@ public class EditActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.edit_layout);
+
+        recordLayout=findViewById(R.id.record_layout);
+
         et=findViewById(R.id.et);
         //可以点击播放语音
         et.setMovementMethod(LinkMovementMethod.getInstance());
@@ -162,10 +170,11 @@ public class EditActivity extends AppCompatActivity {
             }
         });
 
-        record_start = (Button) findViewById(R.id.record_start);
-        record_stop = (Button) findViewById(R.id.record_stop);
+        record_start = findViewById(R.id.record_start);
+        record_stop = (Button) findViewById(R.id.btn_stop);
 
-        //设置按钮可否点击
+
+                        //设置按钮可否点击
         record_start.setEnabled(true);
         record_stop.setEnabled(false);
         record_start.setOnClickListener(new View.OnClickListener() {
@@ -174,6 +183,7 @@ public class EditActivity extends AppCompatActivity {
                 //设置按钮可否点击
                 record_start.setEnabled(false);
                 record_stop.setEnabled(true);
+                recordLayout.setVisibility(View.VISIBLE);
 
                 //创建文件名和路径名
                 fileName = DateFormat.format("yyyyMMdd_HH：mm：ss", Calendar.getInstance(Locale.CHINA)) + ".mp3";
@@ -239,6 +249,9 @@ public class EditActivity extends AppCompatActivity {
                 //设置按钮可否点击
                 record_start.setEnabled(true);
                 record_stop.setEnabled(false);
+
+                recordLayout.setVisibility(View.INVISIBLE);
+
                 //结束录音
                 mediaRecorder.stop();
                 mediaRecorder.release();
@@ -247,7 +260,7 @@ public class EditActivity extends AppCompatActivity {
             }
         });
 
-        choose_photo = (Button) findViewById(R.id.choose_photo);
+        choose_photo = findViewById(R.id.choose_photo);
         choose_photo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -489,4 +502,6 @@ public class EditActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+
+
 }
