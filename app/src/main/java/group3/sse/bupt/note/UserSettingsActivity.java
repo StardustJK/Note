@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.text.InputType;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -178,6 +179,7 @@ public class UserSettingsActivity extends BaseActivity {
                                     if (sharedPreferences.contains("verify_password")){
                                         //先验证之前的密码
                                         final EditText pet=new EditText(context);
+                                        pet.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
                                         AlertDialog passwordVerifyDialog = new AlertDialog.Builder(context).setTitle("修改密码")
                                                 .setMessage("请输入旧密码")
                                                 .setView(pet)
@@ -194,6 +196,7 @@ public class UserSettingsActivity extends BaseActivity {
                                                         }else {
                                                             //打开密码设置对话框
                                                             final EditText et = new EditText(context);
+                                                            et.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
                                                             new AlertDialog.Builder(context).setTitle("设置密码")
                                                                     .setView(et)
                                                                     .setPositiveButton("确定", new DialogInterface.OnClickListener() {
@@ -217,6 +220,7 @@ public class UserSettingsActivity extends BaseActivity {
                                     else {
                                         //打开设置密码的框
                                         final EditText et = new EditText(context);
+                                        et.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
                                         new AlertDialog.Builder(context).setTitle("设置密码")
                                                 .setView(et)
                                                 .setPositiveButton("确定", new DialogInterface.OnClickListener() {

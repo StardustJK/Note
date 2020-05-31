@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.os.CancellationSignal;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.text.InputType;
 import android.provider.MediaStore;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -277,6 +278,7 @@ public class EditActivity extends AppCompatActivity {
             //密码认证
             if (verifyMode==1) {
                 final EditText et=new EditText(context);
+                et.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
                 AlertDialog passwordVerifyDialog = new AlertDialog.Builder(this).setTitle("密码验证")
                         .setMessage("请输入密码")
                         .setView(et)
@@ -298,6 +300,8 @@ public class EditActivity extends AppCompatActivity {
                                 dialogInterface.dismiss();
                             }
                         }).create();
+                passwordVerifyDialog.setCancelable(false);
+                passwordVerifyDialog.getWindow().setDimAmount(1.0f);
                 passwordVerifyDialog.show();
             }
             //指纹认证
