@@ -76,7 +76,7 @@ public class EditActivity extends AppCompatActivity {
 
     //开始录音、结束录音
     private ImageView record_start;
-    private Button record_stop;
+    private ImageView record_stop;
     //录音名称、录音存放路径
     private String fileName;
     private String filePath;
@@ -171,7 +171,7 @@ public class EditActivity extends AppCompatActivity {
         });
 
         record_start = findViewById(R.id.record_start);
-        record_stop = (Button) findViewById(R.id.btn_stop);
+        record_stop =  findViewById(R.id.btn_stop);
 
 
                         //设置按钮可否点击

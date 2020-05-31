@@ -23,7 +23,7 @@
             android:layout_marginStart="200dp"
             android:dropDownWidth="wrap_content"
             android:spinnerMode="dropdown"
-
+            android:background="@color/toolbar"
             style="@style/spinner"
             android:popupTheme="@style/spinnerPop"
 
@@ -36,7 +36,7 @@
         android:layout_height="110dp"
         android:layout_below="@+id/myToolbar"
         android:layout_above="@+id/record_layout"
-
+        android:gravity="top"
         android:background="@null"
         android:textColor="?attr/tvMainColor"
 
@@ -58,15 +58,11 @@
             android:layout_height="wrap_content">
 
         </TextView>
-        <Button
-            android:id="@+id/btn_cancel"
-            android:text="取消"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
 
-        <Button
+        <ImageView
             android:id="@+id/btn_stop"
-            android:text="结束"
+            android:src="@drawable/ic_check_black_24dp"
+            android:layout_marginRight="10dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
