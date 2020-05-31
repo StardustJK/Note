@@ -1,5 +1,6 @@
 package group3.sse.bupt.note;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -35,6 +36,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -97,9 +99,11 @@ public class EditActivity extends AppCompatActivity {
     private CancellationSignal mCancellationSignal;
     private BiometricPrompt.AuthenticationCallback mAuthenticationCallback;
 
-
-
     private LinearLayout recordLayout;
+
+    //分享
+    private ImageView share;
+
     //因为用到了指纹认证，所以规定了最低版本的API
     @RequiresApi(api = Build.VERSION_CODES.P)
     @Override
@@ -107,6 +111,14 @@ public class EditActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.edit_layout);
+        share=findViewById(R.id.share);
+        share.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showPopMenu(v);
+            }
+        });
+
 
         recordLayout=findViewById(R.id.record_layout);
 
@@ -237,7 +249,7 @@ public class EditActivity extends AppCompatActivity {
                     }
                 };
                 spanStr.setSpan(clickableSpan, 0, voice.length(), Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
-                ImageSpan imageSpan=new ImageSpan(context,R.drawable.voice);
+                ImageSpan imageSpan=new ImageSpan(context,R.drawable.wave);
                 spanStr.setSpan(imageSpan,0,voice.length(),Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
                 et.append(spanStr);
             }
@@ -476,36 +488,76 @@ public class EditActivity extends AppCompatActivity {
                 }).create().show();
                 break;
 
-            case R.id.menu_copy:
-                //将笔记内容复制到剪切板
-                Clipboard.CopyTextToClipboard(context,et.getText().toString());
-                Toast.makeText(context, "笔记内容已复制到剪切板", Toast.LENGTH_SHORT).show();
-                break;
-
-            case R.id.menu_screenshot:
-                //将笔记保存为图片
-                Bitmap bmp=Screenshot.getViewBitmap(findViewById(R.id.et));
-                Screenshot.savingBitmapIntoFile(bmp,this);
-                Toast.makeText(context, "图片已保存到手机", Toast.LENGTH_SHORT).show();
-                break;
-            case R.id.menu_share:
-                OnekeyShare oks = new OnekeyShare();
-                // title标题，微信、QQ和QQ空间等平台使用
-                //oks.setTitle("标题");
-                // titleUrl QQ和QQ空间跳转链接
-                //oks.setTitleUrl("http://sharesdk.cn");
-                // text是分享文本，所有平台都需要这个字段
-                oks.setText(et.getText().toString());
-                // setImageUrl是网络图片的url
-                //oks.setImageUrl("https://hmls.hfbank.com.cn/hfapp-api/9.png");
-                // url在微信、Facebook等平台中使用
-                //oks.setUrl("http://sharesdk.cn");
-                // 启动分享GUI
-                oks.show(MobSDK.getContext());
-                break;
+//            case R.id.menu_copy:
+//                //将笔记内容复制到剪切板
+//                Clipboard.CopyTextToClipboard(context,et.getText().toString());
+//                Toast.makeText(context, "笔记内容已复制到剪切板", Toast.LENGTH_SHORT).show();
+//                break;
+//
+//            case R.id.menu_screenshot:
+//                //将笔记保存为图片
+//                Bitmap bmp=Screenshot.getViewBitmap(findViewById(R.id.et));
+//                Screenshot.savingBitmapIntoFile(bmp,this);
+//                Toast.makeText(context, "图片已保存到手机", Toast.LENGTH_SHORT).show();
+//                break;
+//            case R.id.menu_share:
+//                OnekeyShare oks = new OnekeyShare();
+//                // title标题，微信、QQ和QQ空间等平台使用
+//                //oks.setTitle("标题");
+//                // titleUrl QQ和QQ空间跳转链接
+//                //oks.setTitleUrl("http://sharesdk.cn");
+//                // text是分享文本，所有平台都需要这个字段
+//                oks.setText(et.getText().toString());
+//                // setImageUrl是网络图片的url
+//                //oks.setImageUrl("https://hmls.hfbank.com.cn/hfapp-api/9.png");
+//                // url在微信、Facebook等平台中使用
+//                //oks.setUrl("http://sharesdk.cn");
+//                // 启动分享GUI
+//                oks.show(MobSDK.getContext());
+//                break;
         }
         return super.onOptionsItemSelected(item);
     }
+    public void showPopMenu(View view){
+        PopupMenu menu=new PopupMenu(this,view);
+        menu.getMenuInflater().inflate(R.menu.share_menu,menu.getMenu());
+        menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                switch(item.getItemId()){
+                    case R.id.menu_copy:
+                        //将笔记内容复制到剪切板
+                        Clipboard.CopyTextToClipboard(context,et.getText().toString());
+                        Toast.makeText(context, "笔记内容已复制到剪切板", Toast.LENGTH_SHORT).show();
+                        break;
 
+                    case R.id.menu_screenshot:
+                        //将笔记保存为图片
+                        Bitmap bmp=Screenshot.getViewBitmap(findViewById(R.id.et));
+                        Screenshot.savingBitmapIntoFile(bmp, (Activity) context);
+                        Toast.makeText(context, "图片已保存到手机", Toast.LENGTH_SHORT).show();
+                        break;
+                    case R.id.menu_share:
+                        OnekeyShare oks = new OnekeyShare();
+                        // title标题，微信、QQ和QQ空间等平台使用
+                        //oks.setTitle("标题");
+                        // titleUrl QQ和QQ空间跳转链接
+                        //oks.setTitleUrl("http://sharesdk.cn");
+                        // text是分享文本，所有平台都需要这个字段
+                        oks.setText(et.getText().toString());
+                        // setImageUrl是网络图片的url
+                        //oks.setImageUrl("https://hmls.hfbank.com.cn/hfapp-api/9.png");
+                        // url在微信、Facebook等平台中使用
+                        //oks.setUrl("http://sharesdk.cn");
+                        // 启动分享GUI
+                        oks.show(MobSDK.getContext());
+                        break;
+                }
+                return true;
+            }
+        });
+
+        menu.show();
+    }
 
 }

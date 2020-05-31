@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/menu_copy"
+        android:icon="@drawable/ic_menu_black_24dp"
+        android:title="一键复制到剪切板"
+        app:showAsAction="never"
+        />
+    <item
+        android:id="@+id/menu_screenshot"
+        android:icon="@drawable/ic_menu_black_24dp"
+        android:title="将笔记保存为图片"
+        app:showAsAction="never"
+        />
+    <item
+        android:id="@+id/menu_share"
+        android:icon="@drawable/ic_menu_black_24dp"
+        android:title="分享（开发中...）"
+        app:showAsAction="never"
+        />
+</menu>

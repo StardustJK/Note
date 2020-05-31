@@ -58,7 +58,7 @@ public class ContentToSpanstr {
                 }
             };
             spanStr.setSpan(clickableSpan,start,end, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
-            ImageSpan imageSpan=new ImageSpan(context,R.drawable.voice);
+            ImageSpan imageSpan=new ImageSpan(context,R.drawable.wave);
             spanStr.setSpan(imageSpan,start,end,Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
 
 
