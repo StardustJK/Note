@@ -3,6 +3,7 @@ package group3.sse.bupt.note;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.text.SpannableString;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
@@ -57,7 +58,9 @@ public class NoteAdapter extends BaseAdapter implements Filterable {
         String allText = noteList.get(position).getContent();
         /*if (sharedPreferences.getBoolean("noteTitle" ,true))
             tv_content.setText(allText.split("\n")[0]);*/
-        tv_content.setText(allText);
+        SpannableString spanStr = ContentToSpanstr.title_change(mContext,allText);
+        tv_content.setText(spanStr);
+
         tv_time.setText(noteList.get(position).getTime());
 
         //Save note id to tag

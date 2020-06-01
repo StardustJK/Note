@@ -22,6 +22,28 @@ import static android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
 
 public class ContentToSpanstr {
 
+    public static SpannableString title_change(Context context,String content){
+        //用正则表达式寻找音频路径
+        Pattern voice = Pattern.compile("<voice src='(.*?)'/>");
+        Matcher mVoice = voice.matcher(content);
+        //用正则表达式寻找图片路径
+        Pattern photo = Pattern.compile("<photo src='(.*?)'/>");
+        Matcher mPhoto = photo.matcher(content);
+        SpannableString spanStr = new SpannableString(content);
+        while(mVoice.find()){
+            int start = mVoice.start();
+            int end = mVoice.end();
+            ImageSpan imageSpan=new ImageSpan(context,R.drawable.ic_keyboard_voice_black_24dp);
+            spanStr.setSpan(imageSpan,start,end,Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+        }
+        while(mPhoto.find()){
+            int start = mPhoto.start();
+            int end = mPhoto.end();
+            ImageSpan imageSpan=new ImageSpan(context,R.drawable.ic_insert_photo_black_24dp);
+            spanStr.setSpan(imageSpan,start,end,Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+        }
+        return spanStr;
+    }
     public static SpannableString Content_to_SpanStr(Context context,String noteContent){
         //用正则表达式寻找音频路径
         Pattern voice = Pattern.compile("<voice src='(.*?)'/>");
@@ -92,4 +114,5 @@ public class ContentToSpanstr {
         }
         return spanStr;
     }
+
 }
