@@ -60,7 +60,7 @@ import cn.sharesdk.onekeyshare.OnekeyShare;
 import group3.sse.bupt.note.Share.Clipboard;
 import group3.sse.bupt.note.Share.Screenshot;
 
-public class EditActivity extends AppCompatActivity {
+public class EditActivity extends BaseActivity {
     private EditText et;
     private Toolbar myToolbar;
     private String content;
@@ -127,6 +127,8 @@ public class EditActivity extends AppCompatActivity {
         et.setMovementMethod(LinkMovementMethod.getInstance());
 
         myToolbar=findViewById(R.id.myToolbar);
+        if(isNightMode()) myToolbar.setNavigationIcon(getDrawable(R.drawable.ic_keyboard_arrow_left_white_24dp));
+        else myToolbar.setNavigationIcon(getDrawable(R.drawable.ic_keyboard_arrow_left_black_24dp));
         setSupportActionBar(myToolbar);
         getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);//设置toolbar代替actionbar
@@ -168,7 +170,7 @@ public class EditActivity extends AppCompatActivity {
             old_tag=getIntent.getIntExtra("tag",1);
             oldToSpan = ContentToSpanstr.Content_to_SpanStr(context, old_content);
             et.append(oldToSpan);
-           // et.setText(old_content);
+            // et.setText(old_content);
             //et.setSelection(old_content.length());//设置光标位置到尾端
             tagSpinner.setSelection(old_tag-1);
         }
@@ -187,7 +189,7 @@ public class EditActivity extends AppCompatActivity {
         record_stop =  findViewById(R.id.btn_stop);
 
 
-                        //设置按钮可否点击
+        //设置按钮可否点击
         record_start.setEnabled(true);
         record_stop.setEnabled(false);
         record_start.setOnClickListener(new View.OnClickListener() {
@@ -373,6 +375,15 @@ public class EditActivity extends AppCompatActivity {
         }
 
     }
+
+    @Override
+    protected void needRefresh() {
+        setNightMode();
+        startActivity(new Intent(this, EditActivity.class));
+        //overridePendingTransition(R.anim.night_switch, R.anim.night_switch_over);
+        finish();
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {

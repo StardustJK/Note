@@ -24,6 +24,8 @@
         android:layout_height="match_parent"
         android:divider="?attr/lvBackground"
         android:layout_marginTop="8dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
         android:layout_below="@id/myToolbar"
         android:layout_marginBottom="68dp"
 
@@ -49,8 +51,12 @@
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:layout_alignParentBottom="true"
-        android:background="@color/CadetBlue"
+        android:layout_marginBottom="0dp"
         app:menu="@menu/bottom_bar"
+        android:background="?attr/toolbarColor"
+        app:itemIconTint="@color/selector_color"
+        app:itemTextColor="@color/selector_color"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
 
         />
 

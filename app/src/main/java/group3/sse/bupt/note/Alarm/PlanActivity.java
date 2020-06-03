@@ -10,8 +10,10 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -32,13 +34,14 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import androidx.appcompat.widget.Toolbar;
+import group3.sse.bupt.note.BaseActivity;
 import group3.sse.bupt.note.CRUD;
 import group3.sse.bupt.note.MainActivity;
 import group3.sse.bupt.note.Note;
 import group3.sse.bupt.note.R;
 
 
-public class PlanActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
+public class PlanActivity extends BaseActivity implements AdapterView.OnItemClickListener {
 
     private PlanDatabase dbHepler;
 
@@ -69,7 +72,8 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
     private PlanAdapter adapter;
     private List<Plan> planList=new ArrayList<>();
 
-
+    private GestureDetector gestureDetector; //手势检测
+    private GestureDetector.OnGestureListener onSlideGestureListener = null;
 
     //系统提醒
     private AlarmManager alarmManager;
@@ -84,7 +88,7 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
                 case R.id.bottom_bar_note:
                     Intent intent=new Intent(PlanActivity.this, MainActivity.class);
                     startActivity(intent);
-                    overridePendingTransition(0,0);
+                    overridePendingTransition(R.anim.night_switch, R.anim.night_switch_over);
                     PlanActivity.this.finish();
                     return true;
                 case R.id.bottom_bar_plan:
@@ -106,6 +110,10 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_plan);
+        //左右滑动手势监听器
+        onSlideGestureListener = new OnSlideGestureListener();
+        gestureDetector = new GestureDetector(this, onSlideGestureListener);
+
         BottomNavigationView BottomNavigation = (BottomNavigationView) findViewById(R.id.bottomNavigation);
 
         BottomNavigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
@@ -113,7 +121,9 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
 
         myToolbar = findViewById(R.id.myToolbar);
         myToolbar.setTitle("  待办");
-        myToolbar.setLogo(R.drawable.ic_plan_white_24dp);
+        if (super.isNightMode())
+            myToolbar.setLogo(R.drawable.ic_plan_white_24dp);
+        else myToolbar.setLogo(R.drawable.ic_plan_black_24dp);
 
         //点击toolbar上的返回键，自动保存笔记内容并返回到主页面
         myToolbar.setNavigationOnClickListener(new View.OnClickListener() {
@@ -149,7 +159,7 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
                                 if(isTimeChanged()&&changetime){
                                     Log.i("hcccc","newtime:"+newtime);
 
-                                     modifiedPlan=new Plan(editText.getText().toString(), newtime,curPlan.getIsDone());
+                                    modifiedPlan=new Plan(editText.getText().toString(), newtime,curPlan.getIsDone());
                                     changetime=false;
 
                                 }
@@ -176,7 +186,7 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
                                     changetime=false;
                                 }
                                 else {
-                                   newplan.setTime(newplan.getTime());
+                                    newplan.setTime(newplan.getTime());
                                 }
                                 newplan.setContent(editText.getText().toString());
                                 newPlan(newplan);
@@ -211,7 +221,7 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
             @Override
             public void onClick(View v) {
                 Log.i("hcccccc","选择的时间是："+(datePickerStart.getMonth()+1)+":"+datePickerStart.getDayOfMonth()
-                +":"+timePickerStart.getHour()+":"+timePickerStart.getMinute());
+                        +":"+timePickerStart.getHour()+":"+timePickerStart.getMinute());
                 date_time_picker.dismiss();
 
                 //date
@@ -227,7 +237,7 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
                 temp+=timePickerStart.getHour()+":";
                 if(timePickerStart.getMinute()<10) temp+="0";
                 temp+=timePickerStart.getMinute();
-               // newtime=simpleDateFormat.format(temp);
+                // newtime=simpleDateFormat.format(temp);
                 newtime=temp;
                 changetime=true;
 
@@ -298,9 +308,15 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
 
     }
 
-
-
-
+    @Override
+    protected void needRefresh() {
+        setNightMode();
+        Intent intent = new Intent(this, PlanActivity.class);
+        intent.putExtra("opMode", 10);
+        startActivity(intent);
+        overridePendingTransition(R.anim.night_switch, R.anim.night_switch_over);
+        finish();
+    }
 
 
     //隐藏年份
@@ -381,19 +397,102 @@ public class PlanActivity extends AppCompatActivity implements AdapterView.OnIte
         mode=2;
         //通过dialog修改plan的内容
         switch (parent.getId()){
-          case R.id.lv:
-              Log.i("hcccc","onclicked");
-              curPlan=(Plan) parent.getItemAtPosition(position);
-              editText.setText(curPlan.getContent());
-              oldtime= String.valueOf(curPlan.getPlanTime());
-              modifyDialog.show();
-              modifyDialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.CadetBlue));
+            case R.id.lv:
+                Log.i("hcccc","onclicked");
+                curPlan=(Plan) parent.getItemAtPosition(position);
+                editText.setText(curPlan.getContent());
+                oldtime= String.valueOf(curPlan.getPlanTime());
+                modifyDialog.show();
+                modifyDialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.CadetBlue));
 
-              break;
-      }
+                break;
+        }
 
 
     }
+    //将touch动作事件交由手势检测监听器来处理
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        gestureDetector.onTouchEvent(ev);
+        return super.dispatchTouchEvent(ev);
+    }
+    /*********************************************
+     * 左右滑动手势监听器
+     ********************************************/
+    private class OnSlideGestureListener implements GestureDetector.OnGestureListener
+    {
+        @Override
+        public boolean onDown(MotionEvent e) {
+            // TODO Auto-generated method stub
+            return false;
+        }
 
+        @Override
+        public void onShowPress(MotionEvent e) {
+            // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public boolean onSingleTapUp(MotionEvent e) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2,
+                                float distanceX, float distanceY) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        @Override
+        public void onLongPress(MotionEvent e) {
+            // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
+                               float velocityY)
+        {
+            // 参数解释：
+            // e1：第1个ACTION_DOWN MotionEvent
+            // e2：最后一个ACTION_MOVE MotionEvent
+            // velocityX：X轴上的移动速度，像素/秒
+            // velocityY：Y轴上的移动速度，像素/秒
+            // 触发条件 ：
+            // X轴的坐标位移大于FLING_MIN_DISTANCE，且移动速度大于FLING_MIN_VELOCITY个像素/秒
+            if ((e1 == null) || (e2 == null)){
+                return false;
+            }
+            int FLING_MIN_DISTANCE = 100;
+            int FLING_MIN_VELOCITY = 100;
+            if (e1.getX() - e2.getX() > FLING_MIN_DISTANCE
+                    && Math.abs(velocityX) > FLING_MIN_VELOCITY)
+            {
+                // 向左滑动
+//                Intent intent = new Intent();
+//                intent.setClass(PlanActivity.this, MainActivity.class);
+////				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);	//不重复打开多个界面
+//                startActivity(intent);
+//                overridePendingTransition(R.anim.move_left_in, R.anim.move_right_out);
+
+            } else if (e2.getX() - e1.getX() > FLING_MIN_DISTANCE
+//此处也可以加入对滑动速度的要求
+                //                  && Math.abs(velocityX) > FLING_MIN_VELOCITY
+            )
+            {
+                // 向右滑动
+                Intent intent = new Intent();
+                intent.setClass(PlanActivity.this, MainActivity.class);
+                //intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);	//不重复打开多个界面
+                startActivity(intent);
+                overridePendingTransition(R.anim.move_left_in, R.anim.move_right_out);
+                finish();
+            }
+            return false;
+        }
+    }
 
 }
