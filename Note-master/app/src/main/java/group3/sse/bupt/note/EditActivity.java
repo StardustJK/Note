@@ -60,7 +60,7 @@ import cn.sharesdk.onekeyshare.OnekeyShare;
 import group3.sse.bupt.note.Share.Clipboard;
 import group3.sse.bupt.note.Share.Screenshot;
 
-public class EditActivity extends AppCompatActivity {
+public class EditActivity extends BaseActivity {
     private EditText et;
     private Toolbar myToolbar;
     private String content;
@@ -127,6 +127,8 @@ public class EditActivity extends AppCompatActivity {
         et.setMovementMethod(LinkMovementMethod.getInstance());
 
         myToolbar=findViewById(R.id.myToolbar);
+        if(isNightMode()) myToolbar.setNavigationIcon(getDrawable(R.drawable.ic_keyboard_arrow_left_white_24dp));
+        else myToolbar.setNavigationIcon(getDrawable(R.drawable.ic_keyboard_arrow_left_black_24dp));
         setSupportActionBar(myToolbar);
         getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);//设置toolbar代替actionbar
@@ -373,6 +375,15 @@ public class EditActivity extends AppCompatActivity {
         }
 
     }
+
+    @Override
+    protected void needRefresh() {
+        setNightMode();
+        startActivity(new Intent(this, EditActivity.class));
+        //overridePendingTransition(R.anim.night_switch, R.anim.night_switch_over);
+        finish();
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {

@@ -28,6 +28,7 @@ import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -57,7 +58,7 @@ import java.util.List;
 import java.util.Objects;
 
 //主界面
-public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
+public class MainActivity extends BaseActivity implements AdapterView.OnItemClickListener {
 
 
     private NoteDatabase dbHelper;
@@ -95,11 +96,17 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     //回收站功能
 
+    //手势滑动操作
+    private GestureDetector gestureDetector; 					//手势检测
+    private GestureDetector.OnGestureListener onSlideGestureListener = null;	//左右滑动手势检测监听器
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         checkPermission();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        onSlideGestureListener = new OnSlideGestureListener();
+        gestureDetector = new GestureDetector(this, onSlideGestureListener);
         btn = findViewById(R.id.floatingActionButton1);
         listView = findViewById(R.id.listView);
         myToolbar = findViewById(R.id.myToolbar);
@@ -123,7 +130,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         refreshListView();
 
         initPopUpView();
-        myToolbar.setNavigationIcon(R.drawable.ic_menu_black_24dp);//换成菜单图标
+        if (super.isNightMode())
+            myToolbar.setNavigationIcon(getDrawable(R.drawable.ic_menu_white_24dp));
+        else myToolbar.setNavigationIcon(getDrawable(R.drawable.ic_menu_black_24dp)); // 三道杠
         myToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -145,6 +154,102 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         BottomNavigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
     }
+    //将touch动作事件交由手势检测监听器来处理
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        gestureDetector.onTouchEvent(ev);
+        return super.dispatchTouchEvent(ev);
+    }
+
+
+    /*********************************************
+     * 左右滑动手势监听器
+     ********************************************/
+    private class OnSlideGestureListener implements GestureDetector.OnGestureListener
+    {
+        @Override
+        public boolean onDown(MotionEvent e) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        @Override
+        public void onShowPress(MotionEvent e) {
+            // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public boolean onSingleTapUp(MotionEvent e) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2,
+                                float distanceX, float distanceY) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        @Override
+        public void onLongPress(MotionEvent e) {
+            // TODO Auto-generated method stub
+            System.out.println("长按");
+            Log.d(TAG, "onLongPress: ");
+
+        }
+
+        @Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
+                               float velocityY)
+        {
+            // 参数解释：
+            // e1：第1个ACTION_DOWN MotionEvent
+            // e2：最后一个ACTION_MOVE MotionEvent
+            // velocityX：X轴上的移动速度，像素/秒
+            // velocityY：Y轴上的移动速度，像素/秒
+            // 触发条件 ：
+            // X轴的坐标位移大于FLING_MIN_DISTANCE，且移动速度大于FLING_MIN_VELOCITY个像素/秒
+            if ((e1 == null) || (e2 == null)){
+                return false;
+            }
+            int FLING_MIN_DISTANCE = 100;
+            int FLING_MIN_VELOCITY = 100;
+            if (e1.getX() - e2.getX() > FLING_MIN_DISTANCE
+                    && Math.abs(velocityX) > FLING_MIN_VELOCITY)
+            {
+                // 向左滑动
+                Intent intent = new Intent();
+                intent.setClass(MainActivity.this, PlanActivity.class);
+//				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);	//不重复打开多个界面
+                startActivity(intent);
+                //overridePendingTransition(R.anim.move_right_in, R.anim.move_left_out);
+                overridePendingTransition(0, 0);
+                finish();
+            } else if (e2.getX() - e1.getX() > FLING_MIN_DISTANCE
+//此处也可以加入对滑动速度的要求
+//			             && Math.abs(velocityX) > FLING_MIN_VELOCITY
+            )
+            {
+                // 向右滑动打开弹出菜单
+                showPopUpView();
+
+            }
+            return false;
+        }
+    }
+    @Override
+    protected void needRefresh() {
+        setNightMode();
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra("opMode", 10);
+        startActivity(intent);
+        overridePendingTransition(R.anim.night_switch, R.anim.night_switch_over);
+        popupWindow.dismiss();
+        finish();
+    }
+
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
 
@@ -157,7 +262,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 case R.id.bottom_bar_plan:
                     Intent intent=new Intent(MainActivity.this, PlanActivity.class);
                     startActivity(intent);
-                    overridePendingTransition(0,0);
+                    overridePendingTransition(0, 0);
                     MainActivity.this.finish();
                     return true;
             }
@@ -184,7 +289,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         popupWindow = new PopupWindow(customView, (int) (width * 0.7), height, true);//把menu_layout做成弹出窗口
         popupCover = new PopupWindow(coverView, width, height, false);
         popupWindow.setBackgroundDrawable(new ColorDrawable(Color.WHITE));//设置背景色为白色
-
+        popupWindow.setAnimationStyle(R.style.AnimationFade);
+        popupCover.setAnimationStyle(R.style.AnimationCover);
         //在主界面加载成功后，显示弹出
         findViewById(R.id.activity_main).post( new Runnable() {
             @Override

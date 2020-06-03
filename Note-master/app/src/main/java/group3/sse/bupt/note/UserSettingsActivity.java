@@ -56,6 +56,7 @@ public class UserSettingsActivity extends BaseActivity {
     private Switch nightMode;
     private Switch reverseMode;
     private SharedPreferences sharedPreferences;//偏好设置
+    private static boolean night_change;
 
     private Context context = this;//当前上下文
 
@@ -78,6 +79,17 @@ public class UserSettingsActivity extends BaseActivity {
         if(isNightMode())user_setting_toolbar.setNavigationIcon(getDrawable(R.drawable.ic_settings_white_24dp));
         else user_setting_toolbar.setNavigationIcon(getDrawable(R.drawable.ic_settings_black_24dp));
 
+        if(intent.getExtras() != null)
+        {night_change = intent.getBooleanExtra("night_change", false);
+            if(night_change==true){
+                Intent intent1=new Intent(this,MainActivity.class);
+                night_change=false;
+                startActivity(intent1);
+                overridePendingTransition(R.anim.night_switch, R.anim.night_switch_over);
+                finish();//结束之前的设置界面
+
+            }
+        }
         //设置加密笔记验证方式
         verifySettingButton=findViewById(R.id.verifyMode);
         verifySettingButton.setOnClickListener(verifyModeListener);//设置监听器
@@ -121,8 +133,9 @@ public class UserSettingsActivity extends BaseActivity {
         //重新赋值并重启本Activity
         super.setNightMode();
         Intent intent=new Intent(this,UserSettingsActivity.class);
-
+        intent.putExtra("night_change", !night_change);
         startActivity(intent);
+        overridePendingTransition(R.anim.night_switch, R.anim.night_switch_over);
         finish();//结束之前的设置界面
     }
 

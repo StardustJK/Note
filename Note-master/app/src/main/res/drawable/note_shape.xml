@@ -3,14 +3,14 @@
 <!-- 这是每条note的形状  -->
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="?attr/lvBackground"/>
+            <solid android:color="?lvBackground"/>
             <corners android:radius="6dp"/>
         </shape>
     </item>
 <!--  影子，使更立体  -->
     <item android:bottom="3dp">
         <shape android:shape="rectangle">
-            <solid android:color="?attr/lvBackground"/>
+            <solid android:color="?attr/tvBackground"/>
             <corners android:radius="6dp"/>
         </shape>
 

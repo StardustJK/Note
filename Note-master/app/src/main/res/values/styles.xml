@@ -10,7 +10,7 @@
         <item name="toolbarColor">@color/CadetBlue</item>
         <item name="colorPrimary">@color/white</item>
         <item name="android:textColorPrimary">@color/black</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorPrimaryDark">@color/CadetBlue</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="tvBackground">@color/white</item>
         <item name="lvBackground">@color/near_white</item>
@@ -36,7 +36,7 @@
         <item name="toolbarTheme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
         <item name="toolbarColor">@color/black</item>
         <item name="colorPrimary">@color/black</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorPrimaryDark">@color/black</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="tvBackground">@color/black</item>
         <item name="lvBackground">@color/near_black</item>
@@ -114,5 +114,14 @@
     </style>
     <style name="TransparentDialog" parent="Theme.AppCompat.Dialog">
         <item name="android:windowBackground">@color/transparent</item>
+    </style>
+    <style name="AnimationFade">
+        <!-- PopupWindow左右弹出的效果 -->
+        <item name="android:windowEnterAnimation">@anim/in_lefttoright</item>
+        <item name="android:windowExitAnimation">@anim/out_righttoleft</item>
+    </style>
+    <style name="AnimationCover">
+        <item name="android:windowEnterAnimation">@anim/in_slow</item>
+        <item name="android:windowExitAnimation">@anim/out_slow</item>
     </style>
 </resources>
