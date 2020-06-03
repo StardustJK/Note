@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:background="?attr/lvBackground">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/myToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:elevation="10dp"
+        android:background="?attr/toolbarColor"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        >
+        <Spinner
+            android:id="@+id/tag_spinner"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="200dp"
+            android:dropDownWidth="wrap_content"
+            android:spinnerMode="dropdown"
+            android:background="?attr/toolbarColor"
+            style="@style/spinner"
+            android:popupTheme="@style/spinnerPop"
+
+            />
+    </androidx.appcompat.widget.Toolbar>
+
+    <EditText
+        android:id="@+id/et"
+        android:layout_width="match_parent"
+        android:layout_height="110dp"
+        android:layout_below="@+id/myToolbar"
+        android:layout_above="@+id/record_layout"
+        android:gravity="top"
+        android:background="@null"
+        android:textColor="?attr/tvMainColor"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="10dp"
+
+        >
+    </EditText>
+    <LinearLayout
+        android:id="@+id/record_layout"
+        android:orientation="horizontal"
+        android:visibility="invisible"
+        android:layout_marginBottom="10dp"
+        android:layout_above="@+id/menu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:drawableLeft="@drawable/ic_lens_black_24dp"
+            android:text="正在录制......"
+            android:layout_marginLeft="10dp"
+            android:layout_weight="1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+        </TextView>
+
+        <ImageView
+            android:id="@+id/btn_stop"
+            android:src="@drawable/ic_check_black_24dp"
+            android:layout_marginRight="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/menu"
+        android:orientation="horizontal"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:id="@+id/choose_photo"
+            android:layout_weight="1"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:src="@drawable/ic_insert_photo_black_24dp"
+            />
+        <ImageView
+            android:id="@+id/record_start"
+            android:layout_width="30dp"
+            android:layout_weight="1"
+            android:layout_height="30dp"
+            android:src="@drawable/ic_keyboard_voice_black_24dp"
+            />
+        <ImageView
+            android:id="@+id/share"
+            android:layout_weight="1"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:src="@drawable/ic_share_black_24dp"
+            />
+    </LinearLayout>
+
+
+
+</RelativeLayout>

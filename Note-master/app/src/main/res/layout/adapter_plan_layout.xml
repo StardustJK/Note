@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="12dp"
+    android:paddingRight="12dp"
+    android:paddingTop="5dp"
+    android:paddingBottom="12dp"
+    android:background="@drawable/plan_shape"
+
+    android:descendantFocusability="blocksDescendants"
+    android:outlineAmbientShadowColor="@color/black">
+
+    <CheckBox
+        android:id="@+id/checkbox"
+        android:layout_marginTop="8dp"
+        android:theme="@style/My_CheckBox"
+        android:layout_width="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_height="wrap_content" />
+    <LinearLayout
+        android:layout_marginTop="8dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/tv_content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Content"
+            android:textSize="20dp"
+            android:layout_marginLeft="8dp"
+            android:singleLine="true"
+            android:textColor="?attr/tvMainColor"/>
+
+        <TextView
+            android:id="@+id/tv_time"
+            android:drawableLeft="@drawable/ic_alarm_black_24dp"
+            android:drawablePadding="4dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Time"
+            android:textSize="12dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="5dp"
+            android:textColor="?attr/tvSubColor"
+            android:singleLine="true"/>
+
+
+    </LinearLayout>
+
+
+</LinearLayout>
