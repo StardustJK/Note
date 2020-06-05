@@ -32,6 +32,7 @@
         android:layout_marginBottom="68dp"
         android:divider="?attr/lvBackground"
         android:dividerHeight="8dp"
+        android:cacheColorHint="?lvBackground"
 
         />
 

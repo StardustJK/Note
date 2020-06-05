@@ -48,16 +48,18 @@ public class NoteAdapter extends BaseAdapter implements Filterable {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
-        //mContext.setTheme((sharedPreferences.getBoolean("nightMode", false)? R.style.NightTheme: R.style.DayTheme));
-        mContext.setTheme(R.style.DayTheme);
+        if(sharedPreferences.getBoolean("nightMode", false)){
+            mContext.setTheme(R.style.NightTheme);
+        }
+        else mContext.setTheme(R.style.DayTheme);
         View v = View.inflate(mContext, R.layout.note_layout, null);
         TextView tv_content = (TextView)v.findViewById(R.id.tv_content);
         TextView tv_time = (TextView)v.findViewById(R.id.tv_time);
 
         //Set text for TextView
         String allText = noteList.get(position).getContent();
-        /*if (sharedPreferences.getBoolean("noteTitle" ,true))
-            tv_content.setText(allText.split("\n")[0]);*/
+        if (sharedPreferences.getBoolean("noteTitle" ,true))
+            tv_content.setText(allText.split("\n")[0]);
         SpannableString spanStr = ContentToSpanstr.title_change(mContext,allText);
         tv_content.setText(spanStr);
 

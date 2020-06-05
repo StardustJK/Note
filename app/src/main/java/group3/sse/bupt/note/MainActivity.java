@@ -105,30 +105,39 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
         checkPermission();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        onSlideGestureListener = new OnSlideGestureListener();
-        gestureDetector = new GestureDetector(this, onSlideGestureListener);
-        btn = findViewById(R.id.floatingActionButton1);
-        listView = findViewById(R.id.listView);
-        myToolbar = findViewById(R.id.myToolbar);
-        adapter = new NoteAdapter(context, noteList);
+
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putInt("curTag", 0);
         //editor.putBoolean("reverseMode", false);
         editor.commit();
 
+        initView();
+        initPrefs();
+
+
+
+
+    }
+    void initView(){
+        onSlideGestureListener = new OnSlideGestureListener();
+        gestureDetector = new GestureDetector(this, onSlideGestureListener);
+        btn = findViewById(R.id.floatingActionButton1);
+        listView = findViewById(R.id.listView);
+        myToolbar = findViewById(R.id.myToolbar);
+        adapter = new NoteAdapter(context, noteList);
 
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(this);
         listView.setOnItemLongClickListener(ListViewLongClickListener);
 
         myToolbar.setTitle("全部笔记");
-
         setSupportActionBar(myToolbar);
         getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);//设置toolbar代替actionbar
         refreshListView();
 
+        //初始化弹出菜单
         initPopUpView();
         if (super.isNightMode())
             myToolbar.setNavigationIcon(getDrawable(R.drawable.ic_menu_white_24dp));
@@ -139,7 +148,7 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                 showPopUpView();//弹出菜单
             }
         });
-
+        //添加Note按钮
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -150,8 +159,32 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
             }
         });
 
+        //底部导航
         BottomNavigationView BottomNavigation = (BottomNavigationView) findViewById(R.id.bottomNavigation);
         BottomNavigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+
+    }
+    private void initPrefs() {
+        //initialize all useful SharedPreferences for the first time the app runs
+
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        if (!sharedPreferences.contains("nightMode")) {
+            editor.putBoolean("nightMode", false);
+            editor.commit();
+        }
+        if (!sharedPreferences.contains("reverseMode")) {
+            editor.putBoolean("reverseMode", false);
+            editor.commit();
+        }
+        if (!sharedPreferences.contains("tagListString")) {
+            editor.putString("tagListString", defaultTag);
+            editor.commit();
+        }
+        if(!sharedPreferences.contains("noteTitle")){
+            editor.putBoolean("noteTitle", true);
+            editor.commit();
+        }
 
     }
     //将touch动作事件交由手势检测监听器来处理
@@ -222,7 +255,6 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                 // 向左滑动
                 Intent intent = new Intent();
                 intent.setClass(MainActivity.this, PlanActivity.class);
-//				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);	//不重复打开多个界面
                 startActivity(intent);
                 //overridePendingTransition(R.anim.move_right_in, R.anim.move_left_out);
                 overridePendingTransition(0, 0);
@@ -243,6 +275,7 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
     protected void needRefresh() {
         setNightMode();
         Intent intent = new Intent(this, MainActivity.class);
+
         intent.putExtra("opMode", 10);
         startActivity(intent);
         overridePendingTransition(R.anim.night_switch, R.anim.night_switch_over);
@@ -471,8 +504,6 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
         switch (parent.getId()) {
             case R.id.listView:
                 Note curNote = (Note) parent.getItemAtPosition(position);//当前笔记
-
-
 
                 Intent intent = new Intent(MainActivity.this, EditActivity.class);
                 intent.putExtra("content", curNote.getContent());
