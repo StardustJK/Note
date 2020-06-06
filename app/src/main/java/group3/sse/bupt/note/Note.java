@@ -8,12 +8,14 @@ public class Note {
     private String content;
     private String time;
     private int tag;//标签分类
+    private int if_delete;
 
     public Note(){}
-    public Note(String content,String time,int tag){
+    public Note(String content,String time,int tag,int if_delete){
         this.content=content;
         this.time=time;
         this.tag=tag;
+        this.if_delete=if_delete;
     }
 
 
@@ -51,5 +53,12 @@ public class Note {
 
     public void setTag(int tag) {
         this.tag = tag;
+    }
+
+    public void setIf_delete(int if_delete) {
+        this.if_delete = if_delete;
+    }
+    public int getIf_delete() {
+        return if_delete;
     }
 }

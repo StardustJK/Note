@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat;
 import group3.sse.bupt.note.Alarm.PlanActivity;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -100,6 +101,7 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
     private GestureDetector gestureDetector; 					//手势检测
     private GestureDetector.OnGestureListener onSlideGestureListener = null;	//左右滑动手势检测监听器
 
+    @SuppressLint("RestrictedApi")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         checkPermission();
@@ -114,6 +116,10 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
 
         initView();
         initPrefs();
+
+//        if(myToolbar.getTitle()=="回收站"){
+//            btn.setVisibility(View.GONE);
+//        }else btn.setVisibility(View.VISIBLE);
 
 
 
@@ -348,6 +354,9 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                 add_tag.setOnClickListener(add_tagListener);
                 add_tag_image.setOnClickListener(add_tagListener);
                 List<String> tagList = Arrays.asList(sharedPreferences.getString("tagListString", defaultTag).split("_")); //获取tags
+//                Log.d(TAG, "taglist"+tagList);
+//                System.out.println(tagList);
+//                System.out.println(defaultTag);
                 tagAdapter = new TagAdapter(context, tagList, numOfTagNotes(tagList));
                 lv_tag.setAdapter(tagAdapter);
 
@@ -371,19 +380,58 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                         startActivityForResult(intent, 2);
                     }
                 });
+//                recyclebin_image.setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//                        Intent intent = new Intent(MainActivity.this, RecycleBinActivity.class);
+//                        startActivityForResult(intent, 2);
+//
+//                    }
+//                });
+//                recyclebin_text.setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//                        Intent intent = new Intent(MainActivity.this, RecycleBinActivity.class);
+//                        startActivityForResult(intent, 2);
+//                    }
+//                });
                 recyclebin_image.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Intent intent = new Intent(MainActivity.this, RecycleBinActivity.class);
-                        startActivityForResult(intent, 2);
+                        List<Note> temp = new ArrayList<>();
+                        CRUD op = new CRUD(context);
+                        op.open();
+                        temp.addAll(op.getDeleteNotes());
+                        op.close();
+
+                        NoteAdapter tempAdapter = new NoteAdapter(context, temp);
+                        listView.setAdapter(tempAdapter);
+                        myToolbar.setTitle("回收站");
+                        //将当前的标签写入
+//                        SharedPreferences.Editor editor = sharedPreferences.edit();
+//                        editor.putInt("curTag",-1);//curTag=-1代表回收站
+//                        editor.commit();
+                        popupWindow.dismiss();
 
                     }
                 });
                 recyclebin_text.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Intent intent = new Intent(MainActivity.this, RecycleBinActivity.class);
-                        startActivityForResult(intent, 2);
+                        List<Note> temp = new ArrayList<>();
+                        CRUD op = new CRUD(context);
+                        op.open();
+                        temp.addAll(op.getDeleteNotes());
+
+                        NoteAdapter tempAdapter = new NoteAdapter(context, temp);
+                        listView.setAdapter(tempAdapter);
+                        myToolbar.setTitle("回收站");
+                        //将当前的标签写入
+//                        SharedPreferences.Editor editor = sharedPreferences.edit();
+//                        editor.putInt("curTag",-1);//curTag=-1代表回收站
+//                        editor.commit();
+                        popupWindow.dismiss();
+
                     }
                 });
                 //点击了coverView后关闭弹窗
@@ -420,7 +468,7 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                     String content = data.getExtras().getString("content");
                     String time = data.getExtras().getString("time");
                     int tag = data.getExtras().getInt("tag", 1);
-                    Note newNote = new Note(content, time, tag);
+                    Note newNote = new Note(content, time, tag,0);
                     CRUD op = new CRUD(context);
                     op.open();
                     op.addNote(newNote);
@@ -429,7 +477,7 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                     String content = data.getExtras().getString("content");
                     String time = data.getExtras().getString("time");
                     int tag = data.getExtras().getInt("tag", 1);
-                    Note newNote = new Note(content, time, tag);
+                    Note newNote = new Note(content, time, tag,0);
                     newNote.setId(note_id);
                     CRUD op = new CRUD(context);
                     op.open();
@@ -464,6 +512,7 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
         if (noteList.size() > 0) {
             noteList.clear();
         }
+
         noteList.addAll(op.getAllNotes());
         //如果未设置正序显示
         if (!sharedPreferences.getBoolean("reverseMode", false))
@@ -497,6 +546,25 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
         listView.setAdapter(tempAdapter);
 
     }
+    //刷新回收站
+    private void refreshRecycleBin(){
+        CRUD op = new CRUD(context);
+        op.open();
+        List<Note> temp=new ArrayList<>();
+        temp.addAll(op.getDeleteNotes());
+        adapter = new NoteAdapter(context, temp);
+        listView.setAdapter(adapter);
+
+    }
+    //刷新标签列表
+    private void refreshTagList() {
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        List<String> tagList = Arrays.asList(sharedPreferences.getString("tagListString", defaultTag).split("_")); //获取tags
+        tagAdapter = new TagAdapter(context, tagList, numOfTagNotes(tagList));
+        lv_tag.setAdapter(tagAdapter);
+        tagAdapter.notifyDataSetChanged();
+
+    }
 
     //监听主页面笔记列表中某个元素的点击
     @Override
@@ -524,20 +592,36 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
         public boolean onItemLongClick(final AdapterView<?> parent, View view, final int position, long id) {
             switch (parent.getId()) {
                 case R.id.listView:
+
                     new AlertDialog.Builder(MainActivity.this)
                             .setMessage("确定删除该笔记吗？")
                             .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
+
                                     Note curNote = (Note) parent.getItemAtPosition(position);//当前笔记
-                                    curNote.setId(curNote.getId());
-                                    CRUD op = new CRUD(context);
-                                    op.open();
-                                    op.removeNote(curNote);
-                                    op.close();
-                                    int curTag = sharedPreferences.getInt("curTag", 1);
-                                    if (curTag == 0) refreshListView();
-                                    else refreshTagListView(curTag);
+                                    if(myToolbar.getTitle()!="回收站"){
+                                        //如果笔记不在回收站，将笔记移至回收站
+                                        curNote.setId(curNote.getId());
+                                        curNote.setIf_delete(1);
+                                        CRUD op = new CRUD(context);
+                                        op.open();
+                                        op.updateNote(curNote);
+                                        op.close();
+                                        int curTag = sharedPreferences.getInt("curTag", 1);
+
+                                        if (curTag == 0) refreshListView();
+                                        else refreshTagListView(curTag);
+
+                                }else{
+                                        //如果在，删除笔记
+                                        CRUD op = new CRUD(context);
+                                        op.open();
+                                        op.removeNote(curNote);
+                                        op.close();
+                                        refreshRecycleBin();
+
+                                    }
 
                                 }
                             }).setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
@@ -549,6 +633,7 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
 
                     return true;
             }
+
             return false;
         }
     };
@@ -585,17 +670,27 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
 
         switch (item.getItemId()) {
             case R.id.menu_clear:
+                if(myToolbar.getTitle()!="回收站"){
                 final int curTag = sharedPreferences.getInt("curTag", 1);
-                if (curTag == 0) {
+                if (curTag == 0) {//curTag=0代表全部笔记
                     new AlertDialog.Builder(MainActivity.this)
                             .setMessage("确定删除全部笔记吗？")
                             .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    dbHelper = new NoteDatabase(context);
-                                    SQLiteDatabase db = dbHelper.getWritableDatabase();
-                                    db.delete("notes", null, null);
-                                    db.execSQL("update sqlite_sequence set seq=0 where name='notes'");//设置笔记id从0开始
+//                                    dbHelper = new NoteDatabase(context);
+//                                    SQLiteDatabase db = dbHelper.getWritableDatabase();
+//                                    db.delete("notes", null, null);
+//                                    db.execSQL("update sqlite_sequence set seq=0 where name='notes'");//设置笔记id从0开始
+                                    CRUD op = new CRUD(context);
+                                    op.open();
+                                    List<Note> temp = new ArrayList<>();
+                                    temp.addAll(op.getAllNotes());
+                                    for(int i=0;i<temp.size();i++){
+                                        temp.get(i).setIf_delete(1);
+                                        op.updateNote(temp.get(i));
+                                    }
+                                    op.close();
                                     refreshListView();
 
                                 }
@@ -605,7 +700,7 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                             dialog.dismiss();//关闭对话框
                         }
                     }).create().show();
-                } else {
+                } else {//curTag不为0时代表当前在分类下
                     new AlertDialog.Builder(MainActivity.this)
                             .setMessage("确定删除该分类下全部笔记吗？")
                             .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
@@ -613,7 +708,13 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                                 public void onClick(DialogInterface dialog, int which) {
                                     CRUD op = new CRUD(context);
                                     op.open();
-                                    op.removeAllNoteByTag(curTag);
+                                    List<Note> temp=new ArrayList<>();
+                                    temp.addAll(op.getAllNoteByTag(curTag));
+                                    for(int i=0;i<temp.size();i++){
+                                        temp.get(i).setIf_delete(1);
+                                        op.updateNote(temp.get(i));
+                                    }
+                                    op.close();
                                     if (curTag == 0)
                                         refreshListView();
                                     else refreshTagListView(curTag);
@@ -629,18 +730,33 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                 break;
 
         }
+        else{
+                    new AlertDialog.Builder(MainActivity.this)
+                            .setMessage("确定删除回收站里全部笔记吗？")
+                            .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                    CRUD op = new CRUD(context);
+                    op.open();
+                    op.deleteRecycleBin();
+                    op.close();
+                    refreshRecycleBin();
+                                }
+                            }).setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();//关闭对话框
+                        }
+                    }).create().show();
+                }
+
+
+        }
+
         return super.onOptionsItemSelected(item);
     }
 
-    //刷新标签列表
-    private void refreshTagList() {
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        List<String> tagList = Arrays.asList(sharedPreferences.getString("tagListString", defaultTag).split("_")); //获取tags
-        tagAdapter = new TagAdapter(context, tagList, numOfTagNotes(tagList));
-        lv_tag.setAdapter(tagAdapter);
-        tagAdapter.notifyDataSetChanged();
 
-    }
 
     //统计不同标签的笔记数
     public List<Integer> numOfTagNotes(List<String> noteStringList) {
@@ -741,7 +857,7 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
 
         @Override
         public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
-            if (id > 0) {
+            if (id > 1) {
                 float length = getResources().getDimensionPixelSize(R.dimen.distance);
                 TextView blank = view.findViewById(R.id.blank_tag);
                 blank.animate().translationX(length).setDuration(300).start();

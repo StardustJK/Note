@@ -159,7 +159,7 @@ public class RecycleBinActivity extends BaseActivity implements AdapterView.OnIt
                     String content = data.getExtras().getString("content");
                     String time = data.getExtras().getString("time");
                     int tag = data.getExtras().getInt("tag", 1);
-                    Note newNote = new Note(content, time, tag);
+                    Note newNote = new Note(content, time, tag,0);
                     CRUD op = new CRUD(context);
                     op.open();
                     op.addNote(newNote);
@@ -168,7 +168,7 @@ public class RecycleBinActivity extends BaseActivity implements AdapterView.OnIt
                     String content = data.getExtras().getString("content");
                     String time = data.getExtras().getString("time");
                     int tag = data.getExtras().getInt("tag", 1);
-                    Note newNote = new Note(content, time, tag);
+                    Note newNote = new Note(content, time, tag,0);
                     newNote.setId(note_id);
                     CRUD op = new CRUD(context);
                     op.open();

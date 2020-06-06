@@ -12,6 +12,7 @@ public class NoteDatabase extends SQLiteOpenHelper {
     public static final String ID="_id";
     public static final String TIME="time";
     public static final String TAG="mode";
+    public static final String IfDELETE="if_delete";//0未删除，1代表已删除在回收站
 
     public NoteDatabase(Context context) {
         super(context, "notes", null, 1);
@@ -22,7 +23,8 @@ public class NoteDatabase extends SQLiteOpenHelper {
             +ID+" integer primary key autoincrement,"
             +CONTENT+" text not null,"
             +TIME+" text not null,"
-            +TAG+" integer default 1)";
+            +TAG+" integer default 1,"
+            +IfDELETE+" integer default 0)";
 
 
     @Override
