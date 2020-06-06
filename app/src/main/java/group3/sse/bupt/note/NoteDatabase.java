@@ -20,11 +20,11 @@ public class NoteDatabase extends SQLiteOpenHelper {
     //云端唯一标识符id
     public static final String OBJECT_ID="objectId";
     //标识，新建
-    public static final String ADD="add";
+    public static final String ADD="addSign";
     //标识，修改
-    public static final String EDIT="edit";
+    public static final String EDIT="editSign";
     //标识，删除
-    public static final String DELETE="delete";
+    public static final String DELETE="deleteSign";
     //用户id
     public static final String USER_ID="userId";
 
@@ -37,12 +37,12 @@ public class NoteDatabase extends SQLiteOpenHelper {
             +ID+" integer primary key autoincrement,"
             +CONTENT+" text not null,"
             +TIME+" text not null,"
-            +TAG+" integer default 1,)"
-            +OBJECT_ID+" text,"
-            +ADD+" integer,"
-            +EDIT+" integer,"
-            +DELETE+" integer,"
-            +USER_ID+" text";
+            +TAG+" integer default 1,"
+            +OBJECT_ID+" text default null,"
+            +ADD+" integer default 0,"
+            +EDIT+" integer default 0,"
+            +DELETE+" integer default 0,"
+            +USER_ID+" text default null)";
 
 
     @Override

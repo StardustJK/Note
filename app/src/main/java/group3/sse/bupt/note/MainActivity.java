@@ -96,9 +96,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         checkPermission();
 
         //初始化BmobSDK
-        Bmob.initialize(this, "706f2bfd8156941cd068ce74cbe48255");
+        //Bmob.initialize(this, "706f2bfd8156941cd068ce74cbe48255");
 
         super.onCreate(savedInstanceState);
+        //初始化BmobSDK
+        Bmob.initialize(this, "706f2bfd8156941cd068ce74cbe48255");
         setContentView(R.layout.activity_main);
         btn = findViewById(R.id.floatingActionButton1);
         listView = findViewById(R.id.listView);

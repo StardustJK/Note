@@ -179,7 +179,7 @@
             android:id="@+id/cloudSyncAccount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="设置"
+            android:text="登录"
             android:clickable="true"
             android:gravity="center" />
     </LinearLayout>

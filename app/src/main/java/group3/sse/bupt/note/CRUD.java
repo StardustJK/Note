@@ -9,6 +9,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 import java.util.ArrayList;
 import java.util.List;
 
+import group3.sse.bupt.note.CloudSync.SyncUtils;
+
 public class CRUD {
 SQLiteOpenHelper dbHandler;
 SQLiteDatabase db;
@@ -30,16 +32,36 @@ public void close(){
 }
 
 //新建笔记
+    //在原来代码基础上修改，传入的这个note对象，应该是指定了内容、时间、标签三个属性
 public Note addNote(Note note){
+    boolean isLogin = false;
+    //判断是否登录，如果登录的话，要给笔记加上用户id。
+    if (SyncUtils.isLogin()){
+        note.setUser(SyncUtils.getCurrentUser());
+        isLogin =true;
+    }
     ContentValues contentValues=new ContentValues();
     contentValues.put(NoteDatabase.CONTENT,note.getContent());
     contentValues.put(NoteDatabase.TIME,note.getTime());
     contentValues.put(NoteDatabase.TAG,note.getTag());
+    //如果用户是登录状态，可以获取到当前用户，将用户的id存到本地数据中
+    if (isLogin){
+        contentValues.put(NoteDatabase.USER_ID,note.getUser().getObjectId());
+    }
+    //云端数据库不关心本地id，但是本地数据库一定要保存云端id
+    if (isLogin){
+        note=SyncUtils.addNote(note);
+    }
+    contentValues.put(NoteDatabase.OBJECT_ID,note.getObjectId());
+    contentValues.put(NoteDatabase.ADD,note.getAdd());
+    //插入新数据，数据库自动分配id
     long insertID=db.insert(NoteDatabase.TABLE_NAME,null,contentValues);
     note.setId(insertID);
     return note;
 
 }
+
+
 //通过id查询Note
 public Note getNote(long id){
     Cursor cursor=db.query(NoteDatabase.TABLE_NAME,columns,NoteDatabase.ID+"=?",
@@ -50,6 +72,8 @@ public Note getNote(long id){
     Note e=new Note(cursor.getString(1),cursor.getString(2),cursor.getInt(3));
     return e;
 }
+
+
 //获取全部笔记
 public List<Note> getAllNotes(){
     Cursor cursor=db.query(NoteDatabase.TABLE_NAME,columns,null,
@@ -67,6 +91,8 @@ public List<Note> getAllNotes(){
     }
     return notes;
 }
+
+
 //更新笔记
     public int updateNote(Note note) {
         //update the info of an existing note

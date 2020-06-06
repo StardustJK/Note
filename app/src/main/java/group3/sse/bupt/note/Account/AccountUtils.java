@@ -62,9 +62,9 @@ public class AccountUtils {
     /**
      * 账号密码登录
      */
-    private void loginByAccount(final View view) {
+    public static void loginByAccount(final View view,String username,String password) {
         //此处替换为你的用户名密码
-        BmobUser.loginByAccount("username", "password", new LogInListener<User>() {
+        BmobUser.loginByAccount(username, password, new LogInListener<User>() {
             @Override
             public void done(User user, BmobException e) {
                 if (e == null) {
@@ -170,8 +170,8 @@ public class AccountUtils {
     }
 
     //退出登录，同时清除缓存用户对象。
-    public void logOut(){
+    public static void logOut(){
         BmobUser.logOut();
-        User user=new User();
+        //User user=new User();
     }
 }

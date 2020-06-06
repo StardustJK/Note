@@ -2,6 +2,12 @@ apply plugin: 'com.android.application'
 apply plugin: 'com.mob.sdk'
 
 android {
+    //将Java版本设置成1.8
+    //云同步需要，不要改
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
     useLibrary 'org.apache.http.legacy'
     compileSdkVersion 28
     defaultConfig {
