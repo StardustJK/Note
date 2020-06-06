@@ -19,7 +19,8 @@ private static final String[] columns={
         NoteDatabase.ID,
         NoteDatabase.CONTENT,
         NoteDatabase.TIME,
-        NoteDatabase.TAG
+        NoteDatabase.TAG,
+        NoteDatabase.IfDELETE,
 };
 public CRUD(Context context){
     dbHandler=new NoteDatabase(context);
@@ -55,6 +56,7 @@ public Note addNote(Note note){
     contentValues.put(NoteDatabase.OBJECT_ID,note.getObjectId());
     contentValues.put(NoteDatabase.ADD,note.getAdd());
     //插入新数据，数据库自动分配id
+    contentValues.put(NoteDatabase.IfDELETE,note.getIf_delete());
     long insertID=db.insert(NoteDatabase.TABLE_NAME,null,contentValues);
     note.setId(insertID);
     return note;
@@ -69,7 +71,7 @@ public Note getNote(long id){
     if(cursor!=null){
         cursor.moveToFirst();
     }
-    Note e=new Note(cursor.getString(1),cursor.getString(2),cursor.getInt(3));
+    Note e=new Note(cursor.getString(1),cursor.getString(2),cursor.getInt(3),cursor.getInt(4));
     return e;
 }
 
@@ -86,6 +88,8 @@ public List<Note> getAllNotes(){
             note.setContent(cursor.getString(cursor.getColumnIndex(NoteDatabase.CONTENT)));
             note.setTime(cursor.getString(cursor.getColumnIndex(NoteDatabase.TIME)));
             note.setTag(cursor.getInt(cursor.getColumnIndex(NoteDatabase.TAG)));
+            note.setIf_delete(cursor.getInt(cursor.getColumnIndex(NoteDatabase.IfDELETE)));
+            if(note.getIf_delete()!=1)
             notes.add(note);
         }
     }
@@ -93,6 +97,24 @@ public List<Note> getAllNotes(){
 }
 
 
+//获取被删除的笔记
+    public List<Note> getDeleteNotes(){
+        List<Note> notes=new ArrayList<>();
+        Cursor cursor=db.query(NoteDatabase.TABLE_NAME,columns,NoteDatabase.IfDELETE+"=1",
+                null,null,null,null);
+        if(cursor.getCount()>0){
+            while(cursor.moveToNext()){
+                Note note=new Note();
+                note.setId(cursor.getLong(cursor.getColumnIndex(NoteDatabase.ID)));
+                note.setContent(cursor.getString(cursor.getColumnIndex(NoteDatabase.CONTENT)));
+                note.setTime(cursor.getString(cursor.getColumnIndex(NoteDatabase.TIME)));
+                note.setTag(cursor.getInt(cursor.getColumnIndex(NoteDatabase.TAG)));
+                note.setIf_delete(cursor.getInt(cursor.getColumnIndex(NoteDatabase.IfDELETE)));
+                notes.add(note);
+            }
+    }
+        return notes;
+}
 //更新笔记
     public int updateNote(Note note) {
         //update the info of an existing note
@@ -100,6 +122,7 @@ public List<Note> getAllNotes(){
         values.put(NoteDatabase.CONTENT, note.getContent());
         values.put(NoteDatabase.TIME, note.getTime());
         values.put(NoteDatabase.TAG, note.getTag());
+        values.put(NoteDatabase.IfDELETE,note.getIf_delete());
         // updating row
         return db.update(NoteDatabase.TABLE_NAME, values,
                 NoteDatabase.ID + "=?",new String[] { String.valueOf(note.getId())});
@@ -110,8 +133,27 @@ public List<Note> getAllNotes(){
         db.delete(NoteDatabase.TABLE_NAME, NoteDatabase.ID + "=" + note.getId(), null);
     }
     //删除一个分类下的所有笔记
-    public void removeAllNoteByTag(int tag){
-    db.delete(NoteDatabase.TABLE_NAME,NoteDatabase.TAG+"="+tag,null);
-    }
+    public List<Note> getAllNoteByTag(int tag){
+        List<Note> notes=new ArrayList<>();
+        Cursor cursor=db.query(NoteDatabase.TABLE_NAME,columns,NoteDatabase.TAG+"="+tag,
+                null,null,null,null);
+        if(cursor.getCount()>0){
+            while(cursor.moveToNext()){
+                Note note=new Note();
+                note.setId(cursor.getLong(cursor.getColumnIndex(NoteDatabase.ID)));
+                note.setContent(cursor.getString(cursor.getColumnIndex(NoteDatabase.CONTENT)));
+                note.setTime(cursor.getString(cursor.getColumnIndex(NoteDatabase.TIME)));
+                note.setTag(cursor.getInt(cursor.getColumnIndex(NoteDatabase.TAG)));
+                note.setIf_delete(cursor.getInt(cursor.getColumnIndex(NoteDatabase.IfDELETE)));
+                notes.add(note);
+            }
 
+    //db.delete(NoteDatabase.TABLE_NAME,NoteDatabase.TAG+"="+tag,null);
+    }
+        return notes;
+
+}
+public void deleteRecycleBin(){
+    db.delete(NoteDatabase.TABLE_NAME,NoteDatabase.IfDELETE+"=1",null);
+}
 }

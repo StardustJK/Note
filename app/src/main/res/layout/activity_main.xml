@@ -6,31 +6,35 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity"
     android:background="?attr/lvBackground"
-    android:id="@+id/activity_main">
+    android:id="@+id/activity_main"
+    android:orientation="vertical">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/myToolbar"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:elevation="10dp"
+        android:elevation="5dp"
         android:background="?attr/toolbarColor"
         android:titleTextColor="?titleColor"
         android:theme="?attr/toolbarTheme"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
 
         />
+
     <ListView
         android:id="@+id/listView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_below="@id/myToolbar"
+        android:layout_marginTop="8dp"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginBottom="68dp"
         android:divider="?attr/lvBackground"
         android:dividerHeight="8dp"
-        android:layout_below="@id/myToolbar"
-        >
-    </ListView>
+        android:cacheColorHint="?lvBackground"
+
+        />
 
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -40,11 +44,24 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
         android:layout_marginEnd="34dp"
-        android:layout_marginBottom="46dp"
+        android:layout_marginBottom="86dp"
         android:clickable="true"
         android:focusable="true"
         app:backgroundTint="@color/CadetBlue"
         app:srcCompat="@drawable/ic_add_black_24dp"
         tools:ignore="RelativeOverlap" />
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="0dp"
+        app:menu="@menu/bottom_bar"
+        android:background="?attr/toolbarColor"
+        app:itemIconTint="@color/selector_color"
+        app:itemTextColor="@color/selector_color"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+
+        />
 
 </RelativeLayout>

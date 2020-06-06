@@ -4,11 +4,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import group3.sse.bupt.note.Alarm.PlanActivity;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -26,6 +29,7 @@ import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -44,6 +48,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
@@ -56,7 +61,7 @@ import java.util.Objects;
 import cn.bmob.v3.Bmob;
 
 //主界面
-public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
+public class MainActivity extends BaseActivity implements AdapterView.OnItemClickListener {
 
 
     private NoteDatabase dbHelper;
@@ -81,6 +86,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private DisplayMetrics metrics;//手机宽高
     private TextView setting_text;//使设置能点击
     private ImageView setting_image;
+    private ImageView recyclebin_image;
+    private TextView recyclebin_text;
     private ListView lv_tag;
     private TextView add_tag;
     private ImageView add_tag_image;
@@ -90,6 +97,13 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     //初始化自动创建的标签
     private String defaultTag="未分类_加密";
 
+    //回收站功能
+
+    //手势滑动操作
+    private GestureDetector gestureDetector; 					//手势检测
+    private GestureDetector.OnGestureListener onSlideGestureListener = null;	//左右滑动手势检测监听器
+
+    @SuppressLint("RestrictedApi")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         //动态申请权限
@@ -102,36 +116,54 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         //初始化BmobSDK
         Bmob.initialize(this, "706f2bfd8156941cd068ce74cbe48255");
         setContentView(R.layout.activity_main);
-        btn = findViewById(R.id.floatingActionButton1);
-        listView = findViewById(R.id.listView);
-        myToolbar = findViewById(R.id.myToolbar);
-        adapter = new NoteAdapter(context, noteList);
+
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putInt("curTag", 0);
         //editor.putBoolean("reverseMode", false);
         editor.commit();
 
+        initView();
+        initPrefs();
+
+//        if(myToolbar.getTitle()=="回收站"){
+//            btn.setVisibility(View.GONE);
+//        }else btn.setVisibility(View.VISIBLE);
+
+
+
+
+    }
+    void initView(){
+        onSlideGestureListener = new OnSlideGestureListener();
+        gestureDetector = new GestureDetector(this, onSlideGestureListener);
+        btn = findViewById(R.id.floatingActionButton1);
+        listView = findViewById(R.id.listView);
+        myToolbar = findViewById(R.id.myToolbar);
+        adapter = new NoteAdapter(context, noteList);
 
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(this);
+        listView.setOnItemLongClickListener(ListViewLongClickListener);
 
         myToolbar.setTitle("全部笔记");
-
         setSupportActionBar(myToolbar);
         getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);//设置toolbar代替actionbar
         refreshListView();
 
+        //初始化弹出菜单
         initPopUpView();
-        myToolbar.setNavigationIcon(R.drawable.ic_menu_black_24dp);//换成菜单图标
+        if (super.isNightMode())
+            myToolbar.setNavigationIcon(getDrawable(R.drawable.ic_menu_white_24dp));
+        else myToolbar.setNavigationIcon(getDrawable(R.drawable.ic_menu_black_24dp)); // 三道杠
         myToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 showPopUpView();//弹出菜单
             }
         });
-
+        //添加Note按钮
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -142,8 +174,150 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             }
         });
 
+        //底部导航
+        BottomNavigationView BottomNavigation = (BottomNavigationView) findViewById(R.id.bottomNavigation);
+        BottomNavigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
     }
+    private void initPrefs() {
+        //initialize all useful SharedPreferences for the first time the app runs
+
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        if (!sharedPreferences.contains("nightMode")) {
+            editor.putBoolean("nightMode", false);
+            editor.commit();
+        }
+        if (!sharedPreferences.contains("reverseMode")) {
+            editor.putBoolean("reverseMode", false);
+            editor.commit();
+        }
+        if (!sharedPreferences.contains("tagListString")) {
+            editor.putString("tagListString", defaultTag);
+            editor.commit();
+        }
+        if(!sharedPreferences.contains("noteTitle")){
+            editor.putBoolean("noteTitle", true);
+            editor.commit();
+        }
+
+    }
+    //将touch动作事件交由手势检测监听器来处理
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        gestureDetector.onTouchEvent(ev);
+        return super.dispatchTouchEvent(ev);
+    }
+
+
+    /*********************************************
+     * 左右滑动手势监听器
+     ********************************************/
+    private class OnSlideGestureListener implements GestureDetector.OnGestureListener
+    {
+        @Override
+        public boolean onDown(MotionEvent e) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        @Override
+        public void onShowPress(MotionEvent e) {
+            // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public boolean onSingleTapUp(MotionEvent e) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2,
+                                float distanceX, float distanceY) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        @Override
+        public void onLongPress(MotionEvent e) {
+            // TODO Auto-generated method stub
+            System.out.println("长按");
+            Log.d(TAG, "onLongPress: ");
+
+        }
+
+        @Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
+                               float velocityY)
+        {
+            // 参数解释：
+            // e1：第1个ACTION_DOWN MotionEvent
+            // e2：最后一个ACTION_MOVE MotionEvent
+            // velocityX：X轴上的移动速度，像素/秒
+            // velocityY：Y轴上的移动速度，像素/秒
+            // 触发条件 ：
+            // X轴的坐标位移大于FLING_MIN_DISTANCE，且移动速度大于FLING_MIN_VELOCITY个像素/秒
+            if ((e1 == null) || (e2 == null)){
+                return false;
+            }
+            int FLING_MIN_DISTANCE = 100;
+            int FLING_MIN_VELOCITY = 100;
+            if (e1.getX() - e2.getX() > FLING_MIN_DISTANCE
+                    && Math.abs(velocityX) > FLING_MIN_VELOCITY)
+            {
+                // 向左滑动
+                Intent intent = new Intent();
+                intent.setClass(MainActivity.this, PlanActivity.class);
+                startActivity(intent);
+                //overridePendingTransition(R.anim.move_right_in, R.anim.move_left_out);
+                overridePendingTransition(0, 0);
+                finish();
+            } else if (e2.getX() - e1.getX() > FLING_MIN_DISTANCE
+//此处也可以加入对滑动速度的要求
+//			             && Math.abs(velocityX) > FLING_MIN_VELOCITY
+            )
+            {
+                // 向右滑动打开弹出菜单
+                showPopUpView();
+
+            }
+            return false;
+        }
+    }
+    @Override
+    protected void needRefresh() {
+        setNightMode();
+        Intent intent = new Intent(this, MainActivity.class);
+
+        intent.putExtra("opMode", 10);
+        startActivity(intent);
+        overridePendingTransition(R.anim.night_switch, R.anim.night_switch_over);
+        popupWindow.dismiss();
+        finish();
+    }
+
+    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
+            = new BottomNavigationView.OnNavigationItemSelectedListener() {
+
+        @Override
+        public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+            switch (menuItem.getItemId()) {
+                case R.id.bottom_bar_note:
+
+                    return true;
+                case R.id.bottom_bar_plan:
+                    Intent intent=new Intent(MainActivity.this, PlanActivity.class);
+                    startActivity(intent);
+                    overridePendingTransition(0, 0);
+                    MainActivity.this.finish();
+                    return true;
+            }
+
+            return false;
+        }
+    };
 
     public void initPopUpView() {
         layoutInflater = (LayoutInflater) MainActivity.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -163,7 +337,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         popupWindow = new PopupWindow(customView, (int) (width * 0.7), height, true);//把menu_layout做成弹出窗口
         popupCover = new PopupWindow(coverView, width, height, false);
         popupWindow.setBackgroundDrawable(new ColorDrawable(Color.WHITE));//设置背景色为白色
-
+        popupWindow.setAnimationStyle(R.style.AnimationFade);
+        popupCover.setAnimationStyle(R.style.AnimationCover);
         //在主界面加载成功后，显示弹出
         findViewById(R.id.activity_main).post( new Runnable() {
             @Override
@@ -173,6 +348,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
                 setting_image = customView.findViewById(R.id.menu_setting_image);
                 setting_text = customView.findViewById(R.id.menu_setting_text);
+                recyclebin_image=customView.findViewById(R.id.menu_recyclebin_image);
+                recyclebin_text=customView.findViewById(R.id.menu_recyclebin_text);
+
                 lv_tag = customView.findViewById(R.id.lv_tag);
                 add_tag = customView.findViewById(R.id.add_tag);
                 add_tag_image = customView.findViewById(R.id.add_tag_image);
@@ -185,6 +363,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 add_tag.setOnClickListener(add_tagListener);
                 add_tag_image.setOnClickListener(add_tagListener);
                 List<String> tagList = Arrays.asList(sharedPreferences.getString("tagListString", defaultTag).split("_")); //获取tags
+//                Log.d(TAG, "taglist"+tagList);
+//                System.out.println(tagList);
+//                System.out.println(defaultTag);
                 tagAdapter = new TagAdapter(context, tagList, numOfTagNotes(tagList));
                 lv_tag.setAdapter(tagAdapter);
 
@@ -206,6 +387,60 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     public void onClick(View v) {
                         Intent intent = new Intent(MainActivity.this, UserSettingsActivity.class);
                         startActivityForResult(intent, 2);
+                    }
+                });
+//                recyclebin_image.setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//                        Intent intent = new Intent(MainActivity.this, RecycleBinActivity.class);
+//                        startActivityForResult(intent, 2);
+//
+//                    }
+//                });
+//                recyclebin_text.setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//                        Intent intent = new Intent(MainActivity.this, RecycleBinActivity.class);
+//                        startActivityForResult(intent, 2);
+//                    }
+//                });
+                recyclebin_image.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        List<Note> temp = new ArrayList<>();
+                        CRUD op = new CRUD(context);
+                        op.open();
+                        temp.addAll(op.getDeleteNotes());
+                        op.close();
+
+                        NoteAdapter tempAdapter = new NoteAdapter(context, temp);
+                        listView.setAdapter(tempAdapter);
+                        myToolbar.setTitle("回收站");
+                        //将当前的标签写入
+//                        SharedPreferences.Editor editor = sharedPreferences.edit();
+//                        editor.putInt("curTag",-1);//curTag=-1代表回收站
+//                        editor.commit();
+                        popupWindow.dismiss();
+
+                    }
+                });
+                recyclebin_text.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        List<Note> temp = new ArrayList<>();
+                        CRUD op = new CRUD(context);
+                        op.open();
+                        temp.addAll(op.getDeleteNotes());
+
+                        NoteAdapter tempAdapter = new NoteAdapter(context, temp);
+                        listView.setAdapter(tempAdapter);
+                        myToolbar.setTitle("回收站");
+                        //将当前的标签写入
+//                        SharedPreferences.Editor editor = sharedPreferences.edit();
+//                        editor.putInt("curTag",-1);//curTag=-1代表回收站
+//                        editor.commit();
+                        popupWindow.dismiss();
+
                     }
                 });
                 //点击了coverView后关闭弹窗
@@ -242,7 +477,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     String content = data.getExtras().getString("content");
                     String time = data.getExtras().getString("time");
                     int tag = data.getExtras().getInt("tag", 1);
-                    Note newNote = new Note(content, time, tag);
+                    Note newNote = new Note(content, time, tag,0);
                     CRUD op = new CRUD(context);
                     op.open();
                     op.addNote(newNote);
@@ -251,7 +486,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     String content = data.getExtras().getString("content");
                     String time = data.getExtras().getString("time");
                     int tag = data.getExtras().getInt("tag", 1);
-                    Note newNote = new Note(content, time, tag);
+                    Note newNote = new Note(content, time, tag,0);
                     newNote.setId(note_id);
                     CRUD op = new CRUD(context);
                     op.open();
@@ -286,6 +521,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         if (noteList.size() > 0) {
             noteList.clear();
         }
+
         noteList.addAll(op.getAllNotes());
         //如果未设置正序显示
         if (!sharedPreferences.getBoolean("reverseMode", false))
@@ -319,6 +555,25 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         listView.setAdapter(tempAdapter);
 
     }
+    //刷新回收站
+    private void refreshRecycleBin(){
+        CRUD op = new CRUD(context);
+        op.open();
+        List<Note> temp=new ArrayList<>();
+        temp.addAll(op.getDeleteNotes());
+        adapter = new NoteAdapter(context, temp);
+        listView.setAdapter(adapter);
+
+    }
+    //刷新标签列表
+    private void refreshTagList() {
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        List<String> tagList = Arrays.asList(sharedPreferences.getString("tagListString", defaultTag).split("_")); //获取tags
+        tagAdapter = new TagAdapter(context, tagList, numOfTagNotes(tagList));
+        lv_tag.setAdapter(tagAdapter);
+        tagAdapter.notifyDataSetChanged();
+
+    }
 
     //监听主页面笔记列表中某个元素的点击
     @Override
@@ -326,8 +581,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         switch (parent.getId()) {
             case R.id.listView:
                 Note curNote = (Note) parent.getItemAtPosition(position);//当前笔记
-
-
 
                 Intent intent = new Intent(MainActivity.this, EditActivity.class);
                 intent.putExtra("content", curNote.getContent());
@@ -341,10 +594,82 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     }
 
+    //长按笔记列表中某个元素，删除该笔记
+    AdapterView.OnItemLongClickListener ListViewLongClickListener = new AdapterView.OnItemLongClickListener() {
+
+        @Override
+        public boolean onItemLongClick(final AdapterView<?> parent, View view, final int position, long id) {
+            switch (parent.getId()) {
+                case R.id.listView:
+
+                    new AlertDialog.Builder(MainActivity.this)
+                            .setMessage("确定删除该笔记吗？")
+                            .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                    Note curNote = (Note) parent.getItemAtPosition(position);//当前笔记
+                                    if(myToolbar.getTitle()!="回收站"){
+                                        //如果笔记不在回收站，将笔记移至回收站
+                                        curNote.setId(curNote.getId());
+                                        curNote.setIf_delete(1);
+                                        CRUD op = new CRUD(context);
+                                        op.open();
+                                        op.updateNote(curNote);
+                                        op.close();
+                                        int curTag = sharedPreferences.getInt("curTag", 1);
+
+                                        if (curTag == 0) refreshListView();
+                                        else refreshTagListView(curTag);
+
+                                }else{
+                                        //如果在，删除笔记
+                                        CRUD op = new CRUD(context);
+                                        op.open();
+                                        op.removeNote(curNote);
+                                        op.close();
+                                        refreshRecycleBin();
+
+                                    }
+
+                                }
+                            }).setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();//关闭对话框
+                        }
+                    }).create().show();
+
+                    return true;
+            }
+
+            return false;
+        }
+    };
     @Override//主页面的toolbar
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_menu, menu);
+        //search setting
+        MenuItem mSearch = menu.findItem(R.id.action_search);
+        androidx.appcompat.widget.SearchView mSearchView = (androidx.appcompat.widget.SearchView) mSearch.getActionView();
+
+        mSearchView.setQueryHint("Search");
+        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                adapter.getFilter().filter(newText);
+                return false;
+            }
+        });
+
+
+
         return super.onCreateOptionsMenu(menu);
 
     }
@@ -354,17 +679,27 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         switch (item.getItemId()) {
             case R.id.menu_clear:
+                if(myToolbar.getTitle()!="回收站"){
                 final int curTag = sharedPreferences.getInt("curTag", 1);
-                if (curTag == 0) {
+                if (curTag == 0) {//curTag=0代表全部笔记
                     new AlertDialog.Builder(MainActivity.this)
                             .setMessage("确定删除全部笔记吗？")
                             .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    dbHelper = new NoteDatabase(context);
-                                    SQLiteDatabase db = dbHelper.getWritableDatabase();
-                                    db.delete("notes", null, null);
-                                    db.execSQL("update sqlite_sequence set seq=0 where name='notes'");//设置笔记id从0开始
+//                                    dbHelper = new NoteDatabase(context);
+//                                    SQLiteDatabase db = dbHelper.getWritableDatabase();
+//                                    db.delete("notes", null, null);
+//                                    db.execSQL("update sqlite_sequence set seq=0 where name='notes'");//设置笔记id从0开始
+                                    CRUD op = new CRUD(context);
+                                    op.open();
+                                    List<Note> temp = new ArrayList<>();
+                                    temp.addAll(op.getAllNotes());
+                                    for(int i=0;i<temp.size();i++){
+                                        temp.get(i).setIf_delete(1);
+                                        op.updateNote(temp.get(i));
+                                    }
+                                    op.close();
                                     refreshListView();
 
                                 }
@@ -374,7 +709,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                             dialog.dismiss();//关闭对话框
                         }
                     }).create().show();
-                } else {
+                } else {//curTag不为0时代表当前在分类下
                     new AlertDialog.Builder(MainActivity.this)
                             .setMessage("确定删除该分类下全部笔记吗？")
                             .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
@@ -382,7 +717,13 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                                 public void onClick(DialogInterface dialog, int which) {
                                     CRUD op = new CRUD(context);
                                     op.open();
-                                    op.removeAllNoteByTag(curTag);
+                                    List<Note> temp=new ArrayList<>();
+                                    temp.addAll(op.getAllNoteByTag(curTag));
+                                    for(int i=0;i<temp.size();i++){
+                                        temp.get(i).setIf_delete(1);
+                                        op.updateNote(temp.get(i));
+                                    }
+                                    op.close();
                                     if (curTag == 0)
                                         refreshListView();
                                     else refreshTagListView(curTag);
@@ -398,18 +739,33 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 break;
 
         }
+        else{
+                    new AlertDialog.Builder(MainActivity.this)
+                            .setMessage("确定删除回收站里全部笔记吗？")
+                            .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                    CRUD op = new CRUD(context);
+                    op.open();
+                    op.deleteRecycleBin();
+                    op.close();
+                    refreshRecycleBin();
+                                }
+                            }).setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();//关闭对话框
+                        }
+                    }).create().show();
+                }
+
+
+        }
+
         return super.onOptionsItemSelected(item);
     }
 
-    //刷新标签列表
-    private void refreshTagList() {
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        List<String> tagList = Arrays.asList(sharedPreferences.getString("tagListString", defaultTag).split("_")); //获取tags
-        tagAdapter = new TagAdapter(context, tagList, numOfTagNotes(tagList));
-        lv_tag.setAdapter(tagAdapter);
-        tagAdapter.notifyDataSetChanged();
 
-    }
 
     //统计不同标签的笔记数
     public List<Integer> numOfTagNotes(List<String> noteStringList) {
@@ -510,7 +866,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         @Override
         public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
-            if (id > 0) {
+            if (id > 1) {
                 float length = getResources().getDimensionPixelSize(R.dimen.distance);
                 TextView blank = view.findViewById(R.id.blank_tag);
                 blank.animate().translationX(length).setDuration(300).start();
@@ -591,10 +947,14 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     };
 
 
-    //动态申请权限
+    //动态申请
     //分享功能需要用到
     //新版的API中文件读写被视作危险权限，在配置文件中不生效，需要启动程序时动态申请
-    String[] permissions = new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+    String[] permissions = new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.RECORD_AUDIO,Manifest.permission.WAKE_LOCK
+
+    };
     List<String> mPermissionList = new ArrayList<>();
 
     // private ImageView welcomeImg = null;

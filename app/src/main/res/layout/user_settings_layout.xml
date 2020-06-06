@@ -4,15 +4,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="?attr/lvBackground"
+    >
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/user_setting_toolbar"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:background="@color/CadetBlue"
+        android:background="?attr/toolbarColor"
         android:elevation="4dp"
-        app:titleTextColor="@color/black"
+        app:titleTextColor="?attr/titleColor"
         app:title="设置"
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
@@ -35,14 +37,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="黑夜模式"
-                android:textColor="@color/black"
+                android:textColor="?attr/tvMainColor"
                 android:textSize="20sp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="这是黑夜模式"
-                android:textColor="@color/grey9"
+                android:textColor="?tvSubColor"
                 android:textSize="16sp" />
 
         </LinearLayout>
@@ -79,14 +81,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="笔记按时间正序排列"
-                android:textColor="@color/black"
+                android:textColor="?attr/tvMainColor"
                 android:textSize="20sp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="可以正序查看笔记"
-                android:textColor="@color/grey9"
+                android:textColor="?attr/tvSubColor"
                 android:textSize="16sp" />
 
         </LinearLayout>
@@ -123,14 +125,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="验证方式"
-                android:textColor="@color/black"
+                android:textColor="?attr/tvMainColor"
                 android:textSize="20sp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="显示加密笔记的验证方式"
-                android:textColor="@color/grey9"
+                android:textColor="?tvSubColor"
                 android:textSize="16sp" />
 
         </LinearLayout>
@@ -164,7 +166,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="云笔记"
-                android:textColor="@color/black"
+                android:textColor="?tvMainColor"
                 android:textSize="20sp" />
 
             <TextView
@@ -188,5 +190,5 @@
         android:layout_height="1dp"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
-        android:foreground="@color/grey9"/>
+        android:foreground="?tvSubColor"/>
 </LinearLayout>

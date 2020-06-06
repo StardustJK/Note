@@ -27,6 +27,7 @@ public class NoteDatabase extends SQLiteOpenHelper {
     public static final String DELETE="deleteSign";
     //用户id
     public static final String USER_ID="userId";
+    public static final String IfDELETE="if_delete";//0未删除，1代表已删除在回收站
 
     public NoteDatabase(Context context) {
         super(context, "notes", null, 1);
@@ -42,7 +43,8 @@ public class NoteDatabase extends SQLiteOpenHelper {
             +ADD+" integer default 0,"
             +EDIT+" integer default 0,"
             +DELETE+" integer default 0,"
-            +USER_ID+" text default null)";
+            +USER_ID+" text default null,"
+            +IfDELETE+" integer default 0)";
 
 
     @Override

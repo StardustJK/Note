@@ -4,6 +4,8 @@ import android.app.AlarmManager;
 
 import android.content.Context;
 
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
@@ -59,10 +61,15 @@ public class PlanAdapter extends BaseAdapter implements Filterable {
 
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
-        mContext.setTheme(R.style.DayTheme);
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+        if(sharedPreferences.getBoolean("nightMode", false)){
+            mContext.setTheme(R.style.NightTheme);
+        }
+        else mContext.setTheme(R.style.DayTheme);
         View v = View.inflate(mContext, R.layout.adapter_plan_layout, null);
         TextView tv_content = (TextView)v.findViewById(R.id.tv_content);
         TextView tv_time = (TextView)v.findViewById(R.id.tv_time);
+
 
         //Set text for TextView
         tv_time.setText(planList.get(position).getTime());
