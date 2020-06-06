@@ -20,11 +20,11 @@ public class AccountUtils {
     /**
      * 账号密码注册
      */
-    private void signUp(final View view) {
+    public static void signUp(final View view,String username,String password) {
         //指定用户对象信息
         final User user = new User();
-        user.setUsername("" + System.currentTimeMillis());
-        user.setPassword("" + System.currentTimeMillis());
+        user.setUsername(username);
+        user.setPassword(password);
 
         user.signUp(new SaveListener<User>() {
             @Override

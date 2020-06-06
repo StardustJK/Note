@@ -42,5 +42,6 @@
         android:capitalize="none"
         android:gravity="fill_horizontal"
         android:password="true"
+        android:inputType="textPassword"
         />
 </LinearLayout>

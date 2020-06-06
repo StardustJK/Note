@@ -317,7 +317,29 @@ public class UserSettingsActivity extends BaseActivity {
 
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
+                                LayoutInflater factory = LayoutInflater
+                                        .from(UserSettingsActivity.this);
+                                final View DialogView = factory.inflate(
+                                        R.layout.register, null);
+                                EditText etun= DialogView.findViewById(R.id.RAccountEditText);
+                                EditText etpw= DialogView.findViewById(R.id.RPasswordEditText);
+                                //Log.i("TAG","读取输入框中的内容");
+                                //final EditText etun=findViewById(R.id.AccountEditText);
+                                //final EditText etpw=findViewById(R.id.PasswordEditText);
+                                AlertDialog registerDialog= new AlertDialog.Builder(UserSettingsActivity.this)
+                                        .setTitle("注册账号")
+                                        .setView(DialogView)
+                                        .setPositiveButton("注册",new DialogInterface.OnClickListener(){
 
+                                            @Override
+                                            public void onClick(DialogInterface dialogInterface, int i) {
+                                                Log.i("TAG","尝试注册");
+                                                Log.i("TAG",etun.getText().toString());
+                                                AccountUtils.signUp(getWindow().getDecorView().findViewById(R.id.cloudSyncAccount),etun.getText().toString(),etpw.getText().toString());
+
+                                            }
+                                        }).create();
+                                registerDialog.show();
                             }
                         }).create();
                 dialog.show();

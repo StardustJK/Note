@@ -23,9 +23,9 @@ public class Note extends BmobObject {
     //优先级删除>新增>修改
     //数据库那边也要修改
     //标识只有0和1两个值
-    private Integer add;
-    private Integer edit;
-    private Integer delete;
+    private Integer add=0;
+    private Integer edit=0;
+    private Integer delete=0;
 
     //作者
     //是多对一的关系，用pointer表示
