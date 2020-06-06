@@ -20,6 +20,7 @@ public class Note extends BmobObject {
 
     //新增、修改、删除标记
     //优先级删除>新增>修改
+    //数据库那边也要修改
     private Boolean add;
     private Boolean edit;
     private Boolean delete;
