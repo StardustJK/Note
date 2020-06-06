@@ -49,6 +49,7 @@ public Note getNote(long id){
         cursor.moveToFirst();
     }
     Note e=new Note(cursor.getString(1),cursor.getString(2),cursor.getInt(3),cursor.getInt(4));
+    System.out.println("getid"+id);
     return e;
 }
 //获取全部笔记
@@ -96,6 +97,7 @@ public List<Note> getAllNotes(){
         values.put(NoteDatabase.TIME, note.getTime());
         values.put(NoteDatabase.TAG, note.getTag());
         values.put(NoteDatabase.IfDELETE,note.getIf_delete());
+        System.out.println("更新id"+note.getId());
         // updating row
         return db.update(NoteDatabase.TABLE_NAME, values,
                 NoteDatabase.ID + "=?",new String[] { String.valueOf(note.getId())});

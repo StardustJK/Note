@@ -75,7 +75,7 @@ public class EditActivity extends BaseActivity {
     private int tag=1;
     private boolean tagChange=false;
     public Intent intent=new Intent();//发送信息的intent
-
+    public Intent getIntent;
 
     //开始录音、结束录音
     private ImageView record_start;
@@ -160,7 +160,7 @@ public class EditActivity extends BaseActivity {
             }
         });
 
-        Intent getIntent=getIntent();//获取启动EditActivity时的intent内容
+        getIntent=getIntent();//获取启动EditActivity时的intent内容
         openMode=getIntent.getIntExtra("mode",0);
 
         if(openMode==3){
@@ -487,6 +487,10 @@ public class EditActivity extends BaseActivity {
                                 else{
                                     intent.putExtra("mode",2);
                                     intent.putExtra("id",id);
+                                    intent.putExtra("content",old_content);
+                                    intent.putExtra("time",old_time);
+                                    intent.putExtra("tag",old_tag);
+                                    intent.putExtra("if_delete",1);
                                     setResult(RESULT_OK,intent);
                                 }
                                 finish();

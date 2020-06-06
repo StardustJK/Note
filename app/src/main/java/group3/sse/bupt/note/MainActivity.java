@@ -98,8 +98,8 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
     //回收站功能
 
     //手势滑动操作
-    private GestureDetector gestureDetector; 					//手势检测
-    private GestureDetector.OnGestureListener onSlideGestureListener = null;	//左右滑动手势检测监听器
+    private GestureDetector gestureDetector; //手势检测
+    private GestureDetector.OnGestureListener onSlideGestureListener = null;//左右滑动手势检测监听器
 
     @SuppressLint("RestrictedApi")
     @Override
@@ -116,10 +116,6 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
 
         initView();
         initPrefs();
-
-//        if(myToolbar.getTitle()=="回收站"){
-//            btn.setVisibility(View.GONE);
-//        }else btn.setVisibility(View.VISIBLE);
 
 
 
@@ -193,90 +189,7 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
         }
 
     }
-    //将touch动作事件交由手势检测监听器来处理
-    @Override
-    public boolean dispatchTouchEvent(MotionEvent ev) {
-        gestureDetector.onTouchEvent(ev);
-        return super.dispatchTouchEvent(ev);
-    }
 
-
-    /*********************************************
-     * 左右滑动手势监听器
-     ********************************************/
-    private class OnSlideGestureListener implements GestureDetector.OnGestureListener
-    {
-        @Override
-        public boolean onDown(MotionEvent e) {
-            // TODO Auto-generated method stub
-            return false;
-        }
-
-        @Override
-        public void onShowPress(MotionEvent e) {
-            // TODO Auto-generated method stub
-
-        }
-
-        @Override
-        public boolean onSingleTapUp(MotionEvent e) {
-            // TODO Auto-generated method stub
-            return false;
-        }
-
-        @Override
-        public boolean onScroll(MotionEvent e1, MotionEvent e2,
-                                float distanceX, float distanceY) {
-            // TODO Auto-generated method stub
-            return false;
-        }
-
-        @Override
-        public void onLongPress(MotionEvent e) {
-            // TODO Auto-generated method stub
-            System.out.println("长按");
-            Log.d(TAG, "onLongPress: ");
-
-        }
-
-        @Override
-        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
-                               float velocityY)
-        {
-            // 参数解释：
-            // e1：第1个ACTION_DOWN MotionEvent
-            // e2：最后一个ACTION_MOVE MotionEvent
-            // velocityX：X轴上的移动速度，像素/秒
-            // velocityY：Y轴上的移动速度，像素/秒
-            // 触发条件 ：
-            // X轴的坐标位移大于FLING_MIN_DISTANCE，且移动速度大于FLING_MIN_VELOCITY个像素/秒
-            if ((e1 == null) || (e2 == null)){
-                return false;
-            }
-            int FLING_MIN_DISTANCE = 100;
-            int FLING_MIN_VELOCITY = 100;
-            if (e1.getX() - e2.getX() > FLING_MIN_DISTANCE
-                    && Math.abs(velocityX) > FLING_MIN_VELOCITY)
-            {
-                // 向左滑动
-                Intent intent = new Intent();
-                intent.setClass(MainActivity.this, PlanActivity.class);
-                startActivity(intent);
-                //overridePendingTransition(R.anim.move_right_in, R.anim.move_left_out);
-                overridePendingTransition(0, 0);
-                finish();
-            } else if (e2.getX() - e1.getX() > FLING_MIN_DISTANCE
-//此处也可以加入对滑动速度的要求
-//			             && Math.abs(velocityX) > FLING_MIN_VELOCITY
-            )
-            {
-                // 向右滑动打开弹出菜单
-                showPopUpView();
-
-            }
-            return false;
-        }
-    }
     @Override
     protected void needRefresh() {
         setNightMode();
@@ -486,9 +399,14 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                 } else if (returnMode == 2) {//删除
                     Note curNote = new Note();
                     curNote.setId(note_id);
+                    curNote.setContent(data.getExtras().getString("content"));
+                    curNote.setTag(data.getExtras().getInt("tag", 1));
+                    curNote.setTime(data.getExtras().getString("time"));
+                    curNote.setIf_delete(1);
                     CRUD op = new CRUD(context);
                     op.open();
-                    op.removeNote(curNote);
+                    //op.removeNote(curNote);
+                    op.updateNote(curNote);
                     op.close();
 
                 }
@@ -502,7 +420,40 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                 if(data!=null){
                     boolean reverseMode= Objects.requireNonNull(data.getExtras()).getBoolean("reverseMode",false);
                     if(reverseMode)refreshListView();
-                }}
+                }
+                break;
+            case 3://从recycleActivity返回到回收站，刷新回收站
+                int returnMode_r;
+                returnMode_r=data.getExtras().getInt("returnMode", 0);
+                long id=data.getExtras().getLong("id", 0);
+                System.out.println("刷新回收站"+id);
+                System.out.println("returnmode"+returnMode_r);
+                if(returnMode_r==0){
+                Note note = new Note();
+                note.setId(id);
+                CRUD op = new CRUD(context);
+                op.open();
+                op.removeNote(note);
+                op.close();
+                refreshRecycleBin();
+                }
+                else{
+                    Note note=new Note();
+                    note.setId(id);
+                    note.setContent(data.getExtras().getString("content"));
+                    note.setTag(data.getExtras().getInt("tag", 1));
+                    note.setTime(data.getExtras().getString("time"));
+                    note.setIf_delete(0);
+                    CRUD op = new CRUD(context);
+                    op.open();
+                    op.updateNote(note);
+                    op.close();
+                    refreshRecycleBin();
+                }
+                break;
+
+        }
+
     }
 
     //刷新笔记列表
@@ -572,7 +523,7 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
         switch (parent.getId()) {
             case R.id.listView:
                 Note curNote = (Note) parent.getItemAtPosition(position);//当前笔记
-
+                if(myToolbar.getTitle()!="回收站"){
                 Intent intent = new Intent(MainActivity.this, EditActivity.class);
                 intent.putExtra("content", curNote.getContent());
                 intent.putExtra("id", curNote.getId());
@@ -581,6 +532,17 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                 intent.putExtra("tag", curNote.getTag());
                 startActivityForResult(intent, 1);//从编辑页面返回结果
                 break;
+        }else{
+                    Intent intent = new Intent(MainActivity.this, RecycleActivity.class);
+                    intent.putExtra("content", curNote.getContent());
+                    intent.putExtra("id", curNote.getId());
+                    intent.putExtra("time", curNote.getTime());
+                    intent.putExtra("mode", 100);//点击进入回收站的笔记的模式
+                    intent.putExtra("tag", curNote.getTag());
+                    startActivityForResult(intent,3);
+
+                    break;
+                }
         }
 
     }
@@ -983,6 +945,89 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                 break;
         }
     }
+    //将touch动作事件交由手势检测监听器来处理
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        gestureDetector.onTouchEvent(ev);
+        return super.dispatchTouchEvent(ev);
+    }
 
+
+    /*********************************************
+     * 左右滑动手势监听器
+     ********************************************/
+    private class OnSlideGestureListener implements GestureDetector.OnGestureListener
+    {
+        @Override
+        public boolean onDown(MotionEvent e) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        @Override
+        public void onShowPress(MotionEvent e) {
+            // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public boolean onSingleTapUp(MotionEvent e) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2,
+                                float distanceX, float distanceY) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        @Override
+        public void onLongPress(MotionEvent e) {
+            // TODO Auto-generated method stub
+            System.out.println("长按");
+            Log.d(TAG, "onLongPress: ");
+
+        }
+
+        @Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
+                               float velocityY)
+        {
+            // 参数解释：
+            // e1：第1个ACTION_DOWN MotionEvent
+            // e2：最后一个ACTION_MOVE MotionEvent
+            // velocityX：X轴上的移动速度，像素/秒
+            // velocityY：Y轴上的移动速度，像素/秒
+            // 触发条件 ：
+            // X轴的坐标位移大于FLING_MIN_DISTANCE，且移动速度大于FLING_MIN_VELOCITY个像素/秒
+            if ((e1 == null) || (e2 == null)){
+                return false;
+            }
+            int FLING_MIN_DISTANCE = 100;
+            int FLING_MIN_VELOCITY = 100;
+            if (e1.getX() - e2.getX() > FLING_MIN_DISTANCE
+                    && Math.abs(velocityX) > FLING_MIN_VELOCITY)
+            {
+                // 向左滑动
+                Intent intent = new Intent();
+                intent.setClass(MainActivity.this, PlanActivity.class);
+                startActivity(intent);
+                //overridePendingTransition(R.anim.move_right_in, R.anim.move_left_out);
+                overridePendingTransition(0, 0);
+                finish();
+            } else if (e2.getX() - e1.getX() > FLING_MIN_DISTANCE
+//此处也可以加入对滑动速度的要求
+//			             && Math.abs(velocityX) > FLING_MIN_VELOCITY
+            )
+            {
+                // 向右滑动打开弹出菜单
+                showPopUpView();
+
+            }
+            return false;
+        }
+    }
 }
 
