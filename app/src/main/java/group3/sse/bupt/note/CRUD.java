@@ -29,6 +29,7 @@ public void close(){
     dbHandler.close();
 }
 
+//新建笔记
 public Note addNote(Note note){
     ContentValues contentValues=new ContentValues();
     contentValues.put(NoteDatabase.CONTENT,note.getContent());

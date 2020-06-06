@@ -7,6 +7,9 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+import cn.bmob.v3.BmobObject;
+
+//先做笔记的云同步，可能时间不够了
 public class Plan {
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
     private long id;//自增长，建立是数据库的时候设置该列自增长

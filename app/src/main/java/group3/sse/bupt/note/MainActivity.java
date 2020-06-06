@@ -53,6 +53,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
+import cn.bmob.v3.Bmob;
+
 //主界面
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
 
@@ -90,7 +92,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        //动态申请权限
         checkPermission();
+
+        //初始化BmobSDK
+        Bmob.initialize(this, "706f2bfd8156941cd068ce74cbe48255");
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         btn = findViewById(R.id.floatingActionButton1);

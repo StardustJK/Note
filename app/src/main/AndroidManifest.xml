@@ -25,6 +25,10 @@
         <activity android:name=".UserSettingsActivity"/>
 
         <receiver android:name=".Alarm.AlarmReceiver"/>
+        <provider
+            android:name="cn.bmob.v3.util.BmobContentProvider"
+            android:authorities="group3.sse.bupt.note.BmobContentProvider">
+        </provider>
     </application>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <!-- 允许程序振动 -->
@@ -32,7 +36,18 @@
     <!-- 允许程序在手机屏幕关闭后后台进程仍然运行 -->
     <uses-permission android:name="android.permission.FLASHLIGHT"/>
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"></uses-permission>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <!-- 生物识别 -->
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <!--允许联网 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!--获取GSM（2g）、WCDMA（联通3g）等网络状态的信息  -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!--获取wifi网络状态的信息 -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <!--保持CPU 运转，屏幕和键盘灯有可能是关闭的,用于文件上传和下载 -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!--获取sd卡写的权限，用于文件上传和下载-->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <!--允许读取手机状态 用于创建BmobInstallation-->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 </manifest>
