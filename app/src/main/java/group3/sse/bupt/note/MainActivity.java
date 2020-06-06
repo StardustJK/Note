@@ -582,6 +582,8 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
             case R.id.listView:
                 Note curNote = (Note) parent.getItemAtPosition(position);//当前笔记
 
+                //测试本地数据库是否存了云端id
+                Log.i("TEST","云端id："+curNote.getObjectId());
                 Intent intent = new Intent(MainActivity.this, EditActivity.class);
                 intent.putExtra("content", curNote.getContent());
                 intent.putExtra("id", curNote.getId());

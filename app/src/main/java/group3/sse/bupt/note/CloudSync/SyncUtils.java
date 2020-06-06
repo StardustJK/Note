@@ -6,6 +6,7 @@ import android.view.View;
 
 import com.google.android.material.snackbar.Snackbar;
 
+import cn.bmob.v3.BmobObject;
 import cn.bmob.v3.BmobUser;
 import cn.bmob.v3.exception.BmobException;
 import cn.bmob.v3.listener.SaveListener;
@@ -35,12 +36,13 @@ public class SyncUtils {
     }
 
     //新建笔记
-    public static Note addNote(final Note note){
+    public static Note addNote(Note note){
         note.save(new SaveListener<String>() {
+            //异步方法
             @Override
             public void done(String objectId, BmobException e) {
                 if (e == null) {
-                    note.setObjectId(objectId);
+                    Log.i("TEST","云端id是："+objectId);
                     Log.i("SUCCESS","新增笔记到云端，成功！");
                     //Snackbar.make(this, "新增成功：", Snackbar.LENGTH_LONG).show();
                 } else {
@@ -51,6 +53,7 @@ public class SyncUtils {
                 }
             }
         });
+        Log.i("TEST","出来的云端id是："+note.getObjectId());
         return note;
     }
 }

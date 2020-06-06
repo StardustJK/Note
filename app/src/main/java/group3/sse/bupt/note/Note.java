@@ -116,6 +116,8 @@ public class Note extends BmobObject {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
     public void setIf_delete(int if_delete) {
         this.if_delete = if_delete;
     }

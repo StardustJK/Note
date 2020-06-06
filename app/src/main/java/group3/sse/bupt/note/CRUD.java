@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +52,8 @@ public Note addNote(Note note){
     }
     //云端数据库不关心本地id，但是本地数据库一定要保存云端id
     if (isLogin){
-        note=SyncUtils.addNote(note);
+        Log.i("TEST","是登录状态");
+        SyncUtils.addNote(note);
     }
     contentValues.put(NoteDatabase.OBJECT_ID,note.getObjectId());
     contentValues.put(NoteDatabase.ADD,note.getAdd());
