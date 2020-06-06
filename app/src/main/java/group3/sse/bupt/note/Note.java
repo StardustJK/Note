@@ -16,17 +16,20 @@ public class Note extends BmobObject {
     //笔记创建时间
     private String time;
 
+    //用于分类
     private Integer tag;//标签分类
 
     //新增、修改、删除标记
     //优先级删除>新增>修改
     //数据库那边也要修改
-    private Boolean add;
-    private Boolean edit;
-    private Boolean delete;
+    //标识只有0和1两个值
+    private Integer add;
+    private Integer edit;
+    private Integer delete;
 
     //作者
     //是多对一的关系，用pointer表示
+    //这个属性是用来区分笔记是哪个用户的，本地数据库保存的是用户的id
     private User user;
 
     public Note(){}
@@ -81,27 +84,27 @@ public class Note extends BmobObject {
         this.tag = tag;
     }
 
-    public Boolean getAdd() {
+    public Integer getAdd() {
         return add;
     }
 
-    public void setAdd(Boolean add) {
+    public void setAdd(Integer add) {
         this.add = add;
     }
 
-    public Boolean getEdit() {
+    public Integer getEdit() {
         return edit;
     }
 
-    public void setEdit(Boolean edit) {
+    public void setEdit(Integer edit) {
         this.edit = edit;
     }
 
-    public Boolean getDelete() {
+    public Integer getDelete() {
         return delete;
     }
 
-    public void setDelete(Boolean delete) {
+    public void setDelete(Integer delete) {
         this.delete = delete;
     }
 
