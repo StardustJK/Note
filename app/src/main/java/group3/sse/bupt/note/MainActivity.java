@@ -397,8 +397,12 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                     op.addNote(newNote);
                     op.close();
                 } else if (returnMode == 1) {
+                    //更新笔记
+                    //内容
                     String content = data.getExtras().getString("content");
+                    //时间
                     String time = data.getExtras().getString("time");
+                    //标签
                     int tag = data.getExtras().getInt("tag", 1);
                     Note newNote = new Note(content, time, tag,0);
                     newNote.setId(note_id);
@@ -407,6 +411,7 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                     op.updateNote(newNote);
                     op.close();
                 } else if (returnMode == 2) {//删除
+                    //把笔记移到回收站
                     Note curNote = new Note();
                     curNote.setId(note_id);
                     curNote.setContent(data.getExtras().getString("content"));
@@ -440,13 +445,13 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                 System.out.println("刷新回收站"+id);
                 System.out.println("returnmode"+returnMode_r);
                 if(returnMode_r==0){
-                Note note = new Note();
-                note.setId(id);
-                CRUD op = new CRUD(context);
-                op.open();
-                op.removeNote(note);
-                op.close();
-                refreshRecycleBin();
+                    Note note = new Note();
+                    note.setId(id);
+                    CRUD op = new CRUD(context);
+                    op.open();
+                    op.removeNote(note);
+                    op.close();
+                    refreshRecycleBin();
                 }
                 else{
                     Note note=new Note();
@@ -544,7 +549,7 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                 intent.putExtra("tag", curNote.getTag());
                 startActivityForResult(intent, 1);//从编辑页面返回结果
                 break;
-        }else{
+                }else{
                     Intent intent = new Intent(MainActivity.this, RecycleActivity.class);
                     intent.putExtra("content", curNote.getContent());
                     intent.putExtra("id", curNote.getId());

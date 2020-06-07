@@ -12,6 +12,7 @@ import java.util.List;
 
 import cn.bmob.v3.exception.BmobException;
 import cn.bmob.v3.listener.SaveListener;
+import group3.sse.bupt.note.Account.AccountUtils;
 import group3.sse.bupt.note.CloudSync.SyncUtils;
 
 public class CRUD {
@@ -23,27 +24,27 @@ private static final String[] columns={
         NoteDatabase.CONTENT,
         NoteDatabase.TIME,
         NoteDatabase.TAG,
-        NoteDatabase.OBJECT_ID,
+        NoteDatabase.IfDELETE,
         NoteDatabase.ADD,
         NoteDatabase.EDIT,
         NoteDatabase.DELETE,
         NoteDatabase.USER_ID,
-        NoteDatabase.IfDELETE
+        NoteDatabase.OBJECT_ID
 };
 
-public CRUD(Context context){
+    public CRUD(Context context){
     dbHandler=new NoteDatabase(context);
 }
-public void open(){
+    public void open(){
     db=dbHandler.getWritableDatabase();
 }
-public void close(){
+    public void close(){
     dbHandler.close();
 }
 
-//新建笔记
+    //新建笔记
     //在原来代码基础上修改，传入的这个note对象，应该是指定了内容、时间、标签三个属性
-public Note addNote(Note note){
+    public Note addNote(Note note){
     boolean isLogin = false;
     //判断是否登录，如果登录的话，要给笔记加上用户id。
     if (SyncUtils.isLogin()){
@@ -74,21 +75,23 @@ public Note addNote(Note note){
 }
 
 
-//通过id查询Note
-public Note getNote(long id){
+    //通过id查询Note
+    public Note getNote(long id){
     Cursor cursor=db.query(NoteDatabase.TABLE_NAME,columns,NoteDatabase.ID+"=?",
             new String[]{String.valueOf(id)},null,null,null,null);
     if(cursor!=null){
         cursor.moveToFirst();
     }
     Note e=new Note(cursor.getString(1),cursor.getString(2),cursor.getInt(3),cursor.getInt(4));
+    //设置objectid
+    e.setObjectId(cursor.getString(9));
     System.out.println("getid"+id);
     return e;
 }
 
 
-//获取全部笔记
-public List<Note> getAllNotes(){
+    //获取全部笔记
+    public List<Note> getAllNotes(){
     Cursor cursor=db.query(NoteDatabase.TABLE_NAME,columns,null,
             null,null,null,null);
     List<Note> notes=new ArrayList<>();
@@ -113,7 +116,7 @@ public List<Note> getAllNotes(){
 }
 
 
-//获取被删除的笔记
+    //获取被删除的笔记
     public List<Note> getDeleteNotes(){
         List<Note> notes=new ArrayList<>();
         Cursor cursor=db.query(NoteDatabase.TABLE_NAME,columns,NoteDatabase.IfDELETE+"=1",
@@ -152,8 +155,16 @@ public List<Note> getAllNotes(){
 
     }
 
-//更新笔记
+    //更新笔记
     public int updateNote(Note note) {
+        //传进来的note是有本地id的，本地的本地id不一定跟云端的本地id对应，但是objectid一定是相同的
+        //所以要通过本地id在本地数据库查objectid
+        Note tmpNote=getNote(note.getId());//创建一个临时note
+        note.setObjectId(tmpNote.getObjectId());
+        //作者
+        if (SyncUtils.isLogin()){
+            note.setUser(SyncUtils.getCurrentUser());
+        }
         //update the info of an existing note
         ContentValues values = new ContentValues();
         values.put(NoteDatabase.CONTENT, note.getContent());
@@ -162,13 +173,27 @@ public List<Note> getAllNotes(){
         values.put(NoteDatabase.IfDELETE,note.getIf_delete());
         System.out.println("更新id"+note.getId());
         // updating row
-        return db.update(NoteDatabase.TABLE_NAME, values,
+        int result=db.update(NoteDatabase.TABLE_NAME, values,
                 NoteDatabase.ID + "=?",new String[] { String.valueOf(note.getId())});
+        //如果登录的话，就同步
+        if (SyncUtils.isLogin()){
+            SyncUtils su=new SyncUtils();
+            su.updateNote(note);
+        }
+        return result;
     }
     //删除笔记
     public void removeNote(Note note) {
+        //不是真删，只是打上删除标识，不显示
         //remove a note according to ID value
-        db.delete(NoteDatabase.TABLE_NAME, NoteDatabase.ID + "=" + note.getId(), null);
+        //db.delete(NoteDatabase.TABLE_NAME, NoteDatabase.ID + "=" + note.getId(), null);
+        ContentValues values = new ContentValues();
+        values.put(NoteDatabase.CONTENT, note.getContent());
+        values.put(NoteDatabase.TIME, note.getTime());
+        values.put(NoteDatabase.TAG, note.getTag());
+        values.put(NoteDatabase.IfDELETE,note.getIf_delete());
+        db.update(NoteDatabase.TABLE_NAME, values,
+                NoteDatabase.ID + "=?",new String[] { String.valueOf(note.getId())});
     }
     //删除一个分类下的所有笔记
     public List<Note> getAllNoteByTag(int tag){
@@ -191,7 +216,8 @@ public List<Note> getAllNotes(){
         return notes;
 
 }
-public void deleteRecycleBin(){
+    //清空回收站
+    public void deleteRecycleBin(){
     db.delete(NoteDatabase.TABLE_NAME,NoteDatabase.IfDELETE+"=1",null);
 }
 }
