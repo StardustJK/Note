@@ -10,6 +10,8 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.List;
 
+import cn.bmob.v3.exception.BmobException;
+import cn.bmob.v3.listener.SaveListener;
 import group3.sse.bupt.note.CloudSync.SyncUtils;
 
 public class CRUD {
@@ -21,8 +23,14 @@ private static final String[] columns={
         NoteDatabase.CONTENT,
         NoteDatabase.TIME,
         NoteDatabase.TAG,
-        NoteDatabase.IfDELETE,
+        NoteDatabase.OBJECT_ID,
+        NoteDatabase.ADD,
+        NoteDatabase.EDIT,
+        NoteDatabase.DELETE,
+        NoteDatabase.USER_ID,
+        NoteDatabase.IfDELETE
 };
+
 public CRUD(Context context){
     dbHandler=new NoteDatabase(context);
 }
@@ -50,17 +58,17 @@ public Note addNote(Note note){
     if (isLogin){
         contentValues.put(NoteDatabase.USER_ID,note.getUser().getObjectId());
     }
-    //云端数据库不关心本地id，但是本地数据库一定要保存云端id
-    if (isLogin){
-        Log.i("TEST","是登录状态");
-        SyncUtils.addNote(note);
-    }
-    contentValues.put(NoteDatabase.OBJECT_ID,note.getObjectId());
-    contentValues.put(NoteDatabase.ADD,note.getAdd());
     //插入新数据，数据库自动分配id
     contentValues.put(NoteDatabase.IfDELETE,note.getIf_delete());
     long insertID=db.insert(NoteDatabase.TABLE_NAME,null,contentValues);
     note.setId(insertID);
+    //现在note身上有本地id，没有云端id，没有add标识
+    if (isLogin){
+        Log.i("TEST","是登录状态");
+        SyncUtils su=new SyncUtils();
+        su.addNote(note);
+        //SyncUtils.addNote(note);
+    }
     return note;
 
 }
@@ -85,12 +93,17 @@ public List<Note> getAllNotes(){
     List<Note> notes=new ArrayList<>();
     if(cursor.getCount()>0){
         while(cursor.moveToNext()){
+            //封装Note对象
             Note note=new Note();
             note.setId(cursor.getLong(cursor.getColumnIndex(NoteDatabase.ID)));
             note.setContent(cursor.getString(cursor.getColumnIndex(NoteDatabase.CONTENT)));
             note.setTime(cursor.getString(cursor.getColumnIndex(NoteDatabase.TIME)));
             note.setTag(cursor.getInt(cursor.getColumnIndex(NoteDatabase.TAG)));
             note.setIf_delete(cursor.getInt(cursor.getColumnIndex(NoteDatabase.IfDELETE)));
+            note.setObjectId(cursor.getString(cursor.getColumnIndex(NoteDatabase.OBJECT_ID)));
+            note.setAdd(cursor.getInt(cursor.getColumnIndex(NoteDatabase.ADD)));
+            note.setEdit(cursor.getInt(cursor.getColumnIndex(NoteDatabase.EDIT)));
+            note.setDelete(cursor.getInt(cursor.getColumnIndex(NoteDatabase.DELETE)));
             if(note.getIf_delete()!=1)
             notes.add(note);
         }
@@ -117,6 +130,27 @@ public List<Note> getAllNotes(){
     }
         return notes;
 }
+    //仅更新本地数据库
+    //这个函数是给云同步使用的
+    public void updateLocalNote(Note note){
+        Log.i("TEST","笔记的ocjectid传到update函数中的值是："+note.getObjectId());
+        Log.i("TEST","笔记的id传到update函数中的值是："+note.getId());
+        ContentValues values = new ContentValues();
+        values.put(NoteDatabase.CONTENT, note.getContent());
+        values.put(NoteDatabase.TIME, note.getTime());
+        values.put(NoteDatabase.TAG, note.getTag());
+        values.put(NoteDatabase.IfDELETE,note.getIf_delete());
+        values.put(NoteDatabase.OBJECT_ID, note.getObjectId());
+        values.put(NoteDatabase.ADD, note.getAdd());
+        values.put(NoteDatabase.EDIT, note.getEdit());
+        values.put(NoteDatabase.DELETE, note.getDelete());
+        values.put(NoteDatabase.USER_ID, note.getUser().getObjectId());
+        // updating row
+        db.update(NoteDatabase.TABLE_NAME, values,
+                NoteDatabase.ID + "=?",new String[] { String.valueOf(note.getId())});
+
+    }
+
 //更新笔记
     public int updateNote(Note note) {
         //update the info of an existing note

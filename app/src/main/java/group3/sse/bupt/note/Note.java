@@ -31,7 +31,7 @@ public class Note extends BmobObject {
     //是多对一的关系，用pointer表示
     //这个属性是用来区分笔记是哪个用户的，本地数据库保存的是用户的id
     private User user;
-    private int if_delete;
+    private Integer if_delete;
 
     public Note(){}
     public Note(String content,String time,int tag,int if_delete){

@@ -474,6 +474,7 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                 note_id = data.getExtras().getLong("id", 0);
 
                 if (returnMode == 0) {
+                    //新建笔记
                     String content = data.getExtras().getString("content");
                     String time = data.getExtras().getString("time");
                     int tag = data.getExtras().getInt("tag", 1);
