@@ -2,6 +2,7 @@ package group3.sse.bupt.note.Account;
 
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import com.google.android.material.snackbar.Snackbar;
 
@@ -15,6 +16,7 @@ import cn.bmob.v3.listener.FindListener;
 import cn.bmob.v3.listener.LogInListener;
 import cn.bmob.v3.listener.SaveListener;
 import cn.bmob.v3.listener.UpdateListener;
+import group3.sse.bupt.note.CloudSync.SyncApplication;
 
 public class AccountUtils {
     /**
@@ -52,9 +54,11 @@ public class AccountUtils {
             public void done(User bmobUser, BmobException e) {
                 if (e == null) {
                     User user = BmobUser.getCurrentUser(User.class);
-                    Snackbar.make(view, "登录成功：" + user.getUsername(), Snackbar.LENGTH_LONG).show();
+                    //Snackbar.make(view, "登录成功：" + user.getUsername(), Snackbar.LENGTH_LONG).show();
+                    Toast.makeText(SyncApplication.getContext(), "登录成功", Toast.LENGTH_SHORT).show();
                 } else {
-                    Snackbar.make(view, "登录失败：" + e.getMessage(), Snackbar.LENGTH_LONG).show();
+                    //Snackbar.make(view, "登录失败：" + e.getMessage(), Snackbar.LENGTH_LONG).show();
+                    Toast.makeText(SyncApplication.getContext(), "登录失败：" + e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             }
         });

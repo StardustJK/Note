@@ -65,6 +65,7 @@ public class UserSettingsActivity extends BaseActivity {
 
     private Button verifySettingButton;//加密笔记验证方式的设置按钮
     private Button syncSettingButton;//云同步设置按钮
+    private TextView syncText;//云同步设置选项下面的说明文字
 
     private EditText etun;
     private EditText etpw;
@@ -105,9 +106,17 @@ public class UserSettingsActivity extends BaseActivity {
         syncSettingButton=findViewById(R.id.cloudSyncAccount);
         syncSettingButton.setOnClickListener(cloudSettingListener);
 
+        //云同步下面的说明文字
+        syncText=findViewById(R.id.cloudText);
         //
         //etun=(EditText) findViewById(R.id.AccountEditText);
         //etpw=(EditText)findViewById(R.id.PasswordEditText);
+
+        //根据登录状态，改变文字
+        if (SyncUtils.isLogin()){
+            syncSettingButton.setText("注销");
+            syncText.setText("当前登录账号："+SyncUtils.getCurrentUser().getUsername());
+        }
     }
 
     public void initView(){
@@ -293,6 +302,8 @@ public class UserSettingsActivity extends BaseActivity {
                 //退出登录
                 AccountUtils.logOut();
                 Log.i("TAG","退出登录");
+                //点击注销后应该刷新一下界面
+                finish();
             }else {
                 Log.i("TAG","准备打开选择对话框");
                 AlertDialog dialog=new AlertDialog.Builder(UserSettingsActivity.this)
@@ -321,6 +332,7 @@ public class UserSettingsActivity extends BaseActivity {
                                                 Log.i("TAG","尝试登录");
                                                 Log.i("TAG",etun.getText().toString());
                                                 AccountUtils.loginByAccount(getWindow().getDecorView().findViewById(R.id.cloudSyncAccount),etun.getText().toString(),etpw.getText().toString());
+                                                finish();
                                             }
                                         }).create();
                                 loginDialog.show();
