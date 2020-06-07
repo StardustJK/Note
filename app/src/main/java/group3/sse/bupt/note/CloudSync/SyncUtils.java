@@ -101,19 +101,21 @@ public class SyncUtils extends Application {
     }
 
     //删除笔记
-    //这是真删
+    //不是真删
     public Note deleteNote(Note note){
-        note.delete(note.getObjectId(), new UpdateListener() {
+        //传进来的有objectid，有user
+        note.update(note.getObjectId(), new UpdateListener() {
             @Override
             public void done(BmobException e) {
                 if (e == null) {
+                    //成功就成功了，不用做什么
+                    //Snackbar.make(mBtnUpdate, "更新成功", Snackbar.LENGTH_LONG).show();
                     Log.e("BMOB", "删除成功");
-                    //Snackbar.make(mBtnDelete, "删除成功", Snackbar.LENGTH_LONG).show();
                 } else {
                     Log.e("BMOB", e.toString());
                     Log.e("BMOB", "删除失败");
-                    //给笔记打上删除标记，保存本地
-                    //Snackbar.make(mBtnDelete, e.getMessage(), Snackbar.LENGTH_LONG).show();
+
+                    //Snackbar.make(mBtnUpdate, e.getMessage(), Snackbar.LENGTH_LONG).show();
                 }
             }
         });

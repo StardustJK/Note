@@ -108,8 +108,10 @@ private static final String[] columns={
             note.setAdd(cursor.getInt(cursor.getColumnIndex(NoteDatabase.ADD)));
             note.setEdit(cursor.getInt(cursor.getColumnIndex(NoteDatabase.EDIT)));
             note.setDelete(cursor.getInt(cursor.getColumnIndex(NoteDatabase.DELETE)));
-            if(note.getIf_delete()!=1)
-            notes.add(note);
+            //排除掉回收站
+            if(note.getIf_delete()!=1 && note.getDelete()!=1) {
+                notes.add(note);
+            }
         }
     }
     return notes;
@@ -129,9 +131,15 @@ private static final String[] columns={
                 note.setTime(cursor.getString(cursor.getColumnIndex(NoteDatabase.TIME)));
                 note.setTag(cursor.getInt(cursor.getColumnIndex(NoteDatabase.TAG)));
                 note.setIf_delete(cursor.getInt(cursor.getColumnIndex(NoteDatabase.IfDELETE)));
-                notes.add(note);
+                note.setObjectId(cursor.getString(cursor.getColumnIndex(NoteDatabase.OBJECT_ID)));
+                note.setAdd(cursor.getInt(cursor.getColumnIndex(NoteDatabase.ADD)));
+                note.setEdit(cursor.getInt(cursor.getColumnIndex(NoteDatabase.EDIT)));
+                note.setDelete(cursor.getInt(cursor.getColumnIndex(NoteDatabase.DELETE)));
+                if(note.getDelete()!=1) {
+                    notes.add(note);
+                }
             }
-    }
+        }
         return notes;
 }
     //仅更新本地数据库
@@ -185,17 +193,33 @@ private static final String[] columns={
     //删除笔记
     public void removeNote(Note note) {
         //不是真删，只是打上删除标识，不显示
+        note.setDelete(1);
+        Note tmpNote=getNote(note.getId());//创建一个临时note
+        note.setObjectId(tmpNote.getObjectId());
+        //作者
+        if (SyncUtils.isLogin()){
+            note.setUser(SyncUtils.getCurrentUser());
+        }
         //remove a note according to ID value
         //db.delete(NoteDatabase.TABLE_NAME, NoteDatabase.ID + "=" + note.getId(), null);
         ContentValues values = new ContentValues();
-        values.put(NoteDatabase.CONTENT, note.getContent());
-        values.put(NoteDatabase.TIME, note.getTime());
-        values.put(NoteDatabase.TAG, note.getTag());
-        values.put(NoteDatabase.IfDELETE,note.getIf_delete());
+        //values.put(NoteDatabase.CONTENT, note.getContent());
+        //values.put(NoteDatabase.TIME, note.getTime());
+        //values.put(NoteDatabase.TAG, note.getTag());
+        //values.put(NoteDatabase.IfDELETE,note.getIf_delete());
+        //删除标识
+        values.put(NoteDatabase.DELETE, note.getDelete());
         db.update(NoteDatabase.TABLE_NAME, values,
                 NoteDatabase.ID + "=?",new String[] { String.valueOf(note.getId())});
+        //如果登录的话，就同步
+        if (SyncUtils.isLogin()){
+            SyncUtils su=new SyncUtils();
+            su.deleteNote(note);
+        }
     }
+
     //删除一个分类下的所有笔记
+    //获取某个标签的所有笔记
     public List<Note> getAllNoteByTag(int tag){
         List<Note> notes=new ArrayList<>();
         Cursor cursor=db.query(NoteDatabase.TABLE_NAME,columns,NoteDatabase.TAG+"="+tag,
@@ -211,13 +235,34 @@ private static final String[] columns={
                 notes.add(note);
             }
 
-    //db.delete(NoteDatabase.TABLE_NAME,NoteDatabase.TAG+"="+tag,null);
-    }
+        //db.delete(NoteDatabase.TABLE_NAME,NoteDatabase.TAG+"="+tag,null);
+        }
         return notes;
+    }
 
-}
     //清空回收站
     public void deleteRecycleBin(){
-    db.delete(NoteDatabase.TABLE_NAME,NoteDatabase.IfDELETE+"=1",null);
-}
+        //给所有ifdelete=1的笔记打上删除标识
+        //db.delete(NoteDatabase.TABLE_NAME,NoteDatabase.IfDELETE+"=1",null);
+
+        Cursor cursor=db.query(NoteDatabase.TABLE_NAME,columns,NoteDatabase.IfDELETE+"=1",
+                null,null,null,null);
+        if(cursor.getCount()>0){
+            while(cursor.moveToNext()){
+                Note note=new Note();
+                note.setId(cursor.getLong(cursor.getColumnIndex(NoteDatabase.ID)));
+                note.setContent(cursor.getString(cursor.getColumnIndex(NoteDatabase.CONTENT)));
+                note.setTime(cursor.getString(cursor.getColumnIndex(NoteDatabase.TIME)));
+                note.setTag(cursor.getInt(cursor.getColumnIndex(NoteDatabase.TAG)));
+                note.setIf_delete(cursor.getInt(cursor.getColumnIndex(NoteDatabase.IfDELETE)));
+                note.setObjectId(cursor.getString(cursor.getColumnIndex(NoteDatabase.OBJECT_ID)));
+                note.setAdd(cursor.getInt(cursor.getColumnIndex(NoteDatabase.ADD)));
+                note.setEdit(cursor.getInt(cursor.getColumnIndex(NoteDatabase.EDIT)));
+                note.setDelete(cursor.getInt(cursor.getColumnIndex(NoteDatabase.DELETE)));
+                if(note.getDelete()!=1) {
+                    removeNote(note);
+                }
+            }
+        }
+    }
 }

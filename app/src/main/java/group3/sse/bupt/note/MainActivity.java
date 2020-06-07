@@ -541,14 +541,14 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
             case R.id.listView:
                 Note curNote = (Note) parent.getItemAtPosition(position);//当前笔记
                 if(myToolbar.getTitle()!="回收站"){
-                Intent intent = new Intent(MainActivity.this, EditActivity.class);
-                intent.putExtra("content", curNote.getContent());
-                intent.putExtra("id", curNote.getId());
-                intent.putExtra("time", curNote.getTime());
-                intent.putExtra("mode", 3);//编辑一个已有笔记模式
-                intent.putExtra("tag", curNote.getTag());
-                startActivityForResult(intent, 1);//从编辑页面返回结果
-                break;
+                    Intent intent = new Intent(MainActivity.this, EditActivity.class);
+                    intent.putExtra("content", curNote.getContent());
+                    intent.putExtra("id", curNote.getId());
+                    intent.putExtra("time", curNote.getTime());
+                    intent.putExtra("mode", 3);//编辑一个已有笔记模式
+                    intent.putExtra("tag", curNote.getTag());
+                    startActivityForResult(intent, 1);//从编辑页面返回结果
+                    break;
                 }else{
                     Intent intent = new Intent(MainActivity.this, RecycleActivity.class);
                     intent.putExtra("content", curNote.getContent());
