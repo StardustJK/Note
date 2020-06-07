@@ -265,4 +265,40 @@ private static final String[] columns={
             }
         }
     }
+
+    //找到所有满足条件的标识笔记
+    //参数1是新增，2是修改，3是删除
+    public List<Note> getAllSignNote(int sign){
+        List<Note> notes=new ArrayList<>();
+        Cursor cursor;
+        if (sign==1) {
+            cursor = db.query(NoteDatabase.TABLE_NAME, columns, NoteDatabase.ADD + "=1",
+                    null, null, null, null);
+        }else if (sign==2){
+            cursor = db.query(NoteDatabase.TABLE_NAME, columns, NoteDatabase.EDIT + "=1",
+                    null, null, null, null);
+        }else {
+            cursor = db.query(NoteDatabase.TABLE_NAME, columns, NoteDatabase.DELETE + "=1",
+                    null, null, null, null);
+        }
+        if(cursor.getCount()>0){
+            while(cursor.moveToNext()){
+                Note note=new Note();
+                note.setId(cursor.getLong(cursor.getColumnIndex(NoteDatabase.ID)));
+                note.setContent(cursor.getString(cursor.getColumnIndex(NoteDatabase.CONTENT)));
+                note.setTime(cursor.getString(cursor.getColumnIndex(NoteDatabase.TIME)));
+                note.setTag(cursor.getInt(cursor.getColumnIndex(NoteDatabase.TAG)));
+                note.setIf_delete(cursor.getInt(cursor.getColumnIndex(NoteDatabase.IfDELETE)));
+                note.setObjectId(cursor.getString(cursor.getColumnIndex(NoteDatabase.OBJECT_ID)));
+                note.setAdd(cursor.getInt(cursor.getColumnIndex(NoteDatabase.ADD)));
+                note.setEdit(cursor.getInt(cursor.getColumnIndex(NoteDatabase.EDIT)));
+                note.setDelete(cursor.getInt(cursor.getColumnIndex(NoteDatabase.DELETE)));
+                if (SyncUtils.isLogin()) {
+                    note.setUser(SyncUtils.getCurrentUser());
+                }
+                notes.add(note);
+            }
+        }
+        return notes;
+    }
 }

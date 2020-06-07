@@ -8,9 +8,13 @@ import android.view.View;
 
 import com.google.android.material.snackbar.Snackbar;
 
+import java.util.List;
+
 import cn.bmob.v3.BmobObject;
+import cn.bmob.v3.BmobQuery;
 import cn.bmob.v3.BmobUser;
 import cn.bmob.v3.exception.BmobException;
+import cn.bmob.v3.listener.QueryListener;
 import cn.bmob.v3.listener.SaveListener;
 import cn.bmob.v3.listener.UpdateListener;
 import group3.sse.bupt.note.Account.User;
@@ -42,6 +46,7 @@ public class SyncUtils extends Application {
 
     //新建笔记
     public Note addNote(Note note){
+        note.setAdd(1);
         note.save(new SaveListener<String>() {
             //异步方法
             @Override
@@ -51,21 +56,18 @@ public class SyncUtils extends Application {
                     Log.i("SUCCESS","新增笔记到云端，成功！");
                     //Snackbar.make(this, "新增成功：", Snackbar.LENGTH_LONG).show();
                     //如果云端保存成功,note就有了objectid，更新本地数据库
-                    CRUD op=new CRUD(SyncApplication.getContext());
-                    op.open();
-                    op.updateLocalNote(note);
-                    op.close();
+                    //如果新建成功，应该是云端有标识，本地没有
+                    note.setAdd(0);
                 } else {
                     Log.e("BMOB", e.toString());
                     //Snackbar.make(, e.getMessage(), Snackbar.LENGTH_LONG).show();
                     //没有新建成功，打上标识，等待下一次同步的时候新建
                     Log.e("BMOB", "新增失败");
-                    note.setAdd(1);
-                    CRUD op=new CRUD(SyncApplication.getContext());
-                    op.open();
-                    op.updateLocalNote(note);
-                    op.close();
                 }
+                CRUD op=new CRUD(SyncApplication.getContext());
+                op.open();
+                op.updateLocalNote(note);
+                op.close();
             }
         });
         Log.i("TEST","出来的云端id是："+note.getObjectId());
@@ -76,6 +78,7 @@ public class SyncUtils extends Application {
     //传入的参数需要有objectid
     public Note updateNote(Note note){
         //传进来的有objectid，有user
+        note.setEdit(1);
         note.update(note.getObjectId(), new UpdateListener() {
             @Override
             public void done(BmobException e) {
@@ -87,7 +90,6 @@ public class SyncUtils extends Application {
                     Log.e("BMOB", e.toString());
                     Log.e("BMOB", "更新失败");
                     //不成功的话，添加编辑标记，等下次同步
-                    note.setEdit(1);
                     CRUD op=new CRUD(SyncApplication.getContext());
                     op.open();
                     op.updateLocalNote(note);
@@ -104,6 +106,7 @@ public class SyncUtils extends Application {
     //不是真删
     public Note deleteNote(Note note){
         //传进来的有objectid，有user
+        note.setDelete(1);
         note.update(note.getObjectId(), new UpdateListener() {
             @Override
             public void done(BmobException e) {
@@ -120,5 +123,71 @@ public class SyncUtils extends Application {
             }
         });
         return note;
+    }
+
+    //同步数据库，打开应用的时候同步一次，登录成功后同步一次
+    public void syncDatabase(){
+        if (isLogin()){
+            //上传
+            //找到所有有新增标记的笔记
+            CRUD op=new CRUD(SyncApplication.getContext());
+            op.open();
+            List<Note> addNotes=op.getAllSignNote(1);
+            List<Note> editNotes=op.getAllSignNote(2);
+            List<Note> deleteNotes=op.getAllSignNote(3);
+            //所有有新增标记的都添加到云端，然后本地删除新增标识
+            for (Note noteAdd:addNotes){
+                addNote(noteAdd);
+                noteAdd.setAdd(0);
+                op.updateLocalNote(noteAdd);
+            }
+
+            for (Note noteEdit:editNotes){
+                BmobQuery<Note> bmobQuery = new BmobQuery<>();
+                bmobQuery.getObject(noteEdit.getObjectId(), new QueryListener<Note>() {
+                    @Override
+                    public void done(Note note1, BmobException e) {
+                        if (e == null) {
+                            //判断查询到的这个结果是否也有编辑标识
+                            CRUD op1=new CRUD(SyncApplication.getContext());
+                            op1.open();
+                            noteEdit.setEdit(1);
+                            op1.updateNote(noteEdit);
+                            op1.close();
+                            //Snackbar.make(mBtnQuery, "查询成功：" + category.getName(), Snackbar.LENGTH_LONG).show();
+                        } else {
+                            Log.e("BMOB", e.toString());
+                            //Snackbar.make(mBtnQuery, e.getMessage(), Snackbar.LENGTH_LONG).show();
+                        }
+                    }
+                });
+                noteEdit.setEdit(0);
+                op.updateLocalNote(noteEdit);
+            }
+            //删除同理
+            for (Note noteDelete:deleteNotes){
+                BmobQuery<Note> bmobQuery = new BmobQuery<>();
+                bmobQuery.getObject(noteDelete.getObjectId(), new QueryListener<Note>() {
+                    @Override
+                    public void done(Note note1, BmobException e) {
+                        if (e == null) {
+                            //判断查询到的这个结果是否也有删除标识
+                            if (note1.getDelete()==0) {
+                                CRUD op1 = new CRUD(SyncApplication.getContext());
+                                op1.open();
+                                noteDelete.setDelete(1);
+                                op1.removeNote(noteDelete);
+                                op1.close();
+                            }
+                            //Snackbar.make(mBtnQuery, "查询成功：" + category.getName(), Snackbar.LENGTH_LONG).show();
+                        } else {
+                            Log.e("BMOB", e.toString());
+                            //Snackbar.make(mBtnQuery, e.getMessage(), Snackbar.LENGTH_LONG).show();
+                        }
+                    }
+                });
+            }
+            op.close();
+        }
     }
 }

@@ -59,6 +59,7 @@ import java.util.List;
 import java.util.Objects;
 
 import cn.bmob.v3.Bmob;
+import group3.sse.bupt.note.CloudSync.SyncUtils;
 
 //主界面
 public class MainActivity extends BaseActivity implements AdapterView.OnItemClickListener {
@@ -128,7 +129,9 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
 
 
 
-
+        //同步数据库
+        SyncUtils su=new SyncUtils();
+        su.syncDatabase();
     }
     void initView(){
         onSlideGestureListener = new OnSlideGestureListener();
