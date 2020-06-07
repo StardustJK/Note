@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
@@ -50,7 +51,8 @@ public class RecycleActivity extends BaseActivity {
         myToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                RecycleActivity.this.finish();
+                setResult(RESULT_OK);
+                finish();
             }
         });
         getIntent=getIntent();//获取启动RecycleActivity时的intent内容
@@ -132,4 +134,16 @@ public class RecycleActivity extends BaseActivity {
             return false;
         }
     };
+    //判断按键情况
+    public boolean onKeyDown(int keyCode, KeyEvent event){
+        if(keyCode==KeyEvent.KEYCODE_HOME){
+            return true;
+        }
+        else if(keyCode==KeyEvent.KEYCODE_BACK){
+            setResult(RESULT_OK);
+            finish();
+            return true;
+        }
+        return super.onKeyDown(keyCode,event);
+    }
 }

@@ -423,6 +423,7 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                 }
                 break;
             case 3://从recycleActivity返回到回收站，刷新回收站
+                if(data!=null){
                 int returnMode_r;
                 returnMode_r=data.getExtras().getInt("returnMode", 0);
                 long id=data.getExtras().getLong("id", 0);
@@ -452,6 +453,7 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                 }
                 break;
 
+        }
         }
 
     }
