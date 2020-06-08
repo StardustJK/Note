@@ -45,49 +45,54 @@ private static final String[] columns={
     //新建笔记
     //在原来代码基础上修改，传入的这个note对象，应该是指定了内容、时间、标签三个属性
     public Note addNote(Note note){
-    boolean isLogin = false;
-    //判断是否登录，如果登录的话，要给笔记加上用户id。
-    if (SyncUtils.isLogin()){
-        note.setUser(SyncUtils.getCurrentUser());
-        isLogin =true;
-    }
-    ContentValues contentValues=new ContentValues();
-    contentValues.put(NoteDatabase.CONTENT,note.getContent());
-    contentValues.put(NoteDatabase.TIME,note.getTime());
-    contentValues.put(NoteDatabase.TAG,note.getTag());
-    //如果用户是登录状态，可以获取到当前用户，将用户的id存到本地数据中
-    if (isLogin){
-        contentValues.put(NoteDatabase.USER_ID,note.getUser().getObjectId());
-    }
-    //插入新数据，数据库自动分配id
-    contentValues.put(NoteDatabase.IfDELETE,note.getIf_delete());
-    long insertID=db.insert(NoteDatabase.TABLE_NAME,null,contentValues);
-    note.setId(insertID);
-    //现在note身上有本地id，没有云端id，没有add标识
-    if (isLogin){
-        Log.i("TEST","是登录状态");
-        SyncUtils su=new SyncUtils();
-        su.addNote(note);
-        //SyncUtils.addNote(note);
-    }
-    return note;
+        boolean isLogin = false;
+        //判断是否登录，如果登录的话，要给笔记加上用户id。
+        if (SyncUtils.isLogin()){
+            note.setUser(SyncUtils.getCurrentUser());
+            isLogin =true;
+        }
+        ContentValues contentValues=new ContentValues();
+        contentValues.put(NoteDatabase.CONTENT,note.getContent());
+        contentValues.put(NoteDatabase.TIME,note.getTime());
+        contentValues.put(NoteDatabase.TAG,note.getTag());
+        //如果用户是登录状态，可以获取到当前用户，将用户的id存到本地数据中
+        if (isLogin){
+            contentValues.put(NoteDatabase.USER_ID,note.getUser().getObjectId());
+        }
+        //插入新数据，数据库自动分配id
+        contentValues.put(NoteDatabase.IfDELETE,note.getIf_delete());
+        //因为可能是同步时新建的笔记，所以可能有objectId
+        contentValues.put(NoteDatabase.OBJECT_ID,note.getObjectId());
+        contentValues.put(NoteDatabase.ADD,note.getAdd());
+        contentValues.put(NoteDatabase.EDIT,note.getEdit());
+        contentValues.put(NoteDatabase.DELETE,note.getDelete());
+        long insertID=db.insert(NoteDatabase.TABLE_NAME,null,contentValues);
+        note.setId(insertID);
+        //现在note身上有本地id，没有云端id，没有add标识
+        if (isLogin && note.getObjectId()==null){
+            Log.i("TEST","是登录状态");
+            SyncUtils su=new SyncUtils();
+            su.addNote(note);
+            //SyncUtils.addNote(note);
+        }
+        return note;
 
-}
+    }
 
 
     //通过id查询Note
     public Note getNote(long id){
-    Cursor cursor=db.query(NoteDatabase.TABLE_NAME,columns,NoteDatabase.ID+"=?",
+        Cursor cursor=db.query(NoteDatabase.TABLE_NAME,columns,NoteDatabase.ID+"=?",
             new String[]{String.valueOf(id)},null,null,null,null);
-    if(cursor!=null){
-        cursor.moveToFirst();
+        if(cursor!=null){
+            cursor.moveToFirst();
+        }
+        Note e=new Note(cursor.getString(1),cursor.getString(2),cursor.getInt(3),cursor.getInt(4));
+        //设置objectid
+        e.setObjectId(cursor.getString(9));
+        System.out.println("getid"+id);
+        return e;
     }
-    Note e=new Note(cursor.getString(1),cursor.getString(2),cursor.getInt(3),cursor.getInt(4));
-    //设置objectid
-    e.setObjectId(cursor.getString(9));
-    System.out.println("getid"+id);
-    return e;
-}
 
 
     //获取全部笔记
@@ -300,5 +305,35 @@ private static final String[] columns={
             }
         }
         return notes;
+    }
+
+    //通过objectId查找note
+    public Boolean findNoteByObjectIdExist(String objectId){
+        Cursor cursor=db.query(NoteDatabase.TABLE_NAME,columns,NoteDatabase.OBJECT_ID+"=?",
+                new String[]{String.valueOf(objectId)},null,null,null,null);
+        if(cursor.moveToFirst()==false){
+            return false;
+        }else {
+            return true;
+        }
+    }
+
+    public Note findNoteByObjectId(String objectId){
+        Cursor cursor=db.query(NoteDatabase.TABLE_NAME,columns,NoteDatabase.OBJECT_ID+"=?",
+                new String[]{String.valueOf(objectId)},null,null,null,null);
+        if(cursor!=null){
+            cursor.moveToFirst();
+        }
+        //打包
+        Note e=new Note(cursor.getString(1),cursor.getString(2),cursor.getInt(3),cursor.getInt(4));
+        e.setId(cursor.getLong(0));
+        e.setAdd(cursor.getInt(5));
+        e.setEdit(cursor.getInt(6));
+        e.setDelete(cursor.getInt(7));
+        //e.setUser(cursor.getInt(8));
+        //设置objectid
+        //e.setObjectId(cursor.getString(9));
+        //System.out.println("getid"+id);
+        return e;
     }
 }

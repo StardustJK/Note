@@ -332,6 +332,7 @@ public class UserSettingsActivity extends BaseActivity {
                                                 Log.i("TAG","尝试登录");
                                                 Log.i("TAG",etun.getText().toString());
                                                 AccountUtils.loginByAccount(getWindow().getDecorView().findViewById(R.id.cloudSyncAccount),etun.getText().toString(),etpw.getText().toString());
+
                                                 finish();
                                             }
                                         }).create();

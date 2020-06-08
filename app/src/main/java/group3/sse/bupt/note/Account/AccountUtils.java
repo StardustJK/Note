@@ -17,6 +17,7 @@ import cn.bmob.v3.listener.LogInListener;
 import cn.bmob.v3.listener.SaveListener;
 import cn.bmob.v3.listener.UpdateListener;
 import group3.sse.bupt.note.CloudSync.SyncApplication;
+import group3.sse.bupt.note.CloudSync.SyncUtils;
 
 public class AccountUtils {
     /**
@@ -43,12 +44,12 @@ public class AccountUtils {
     /**
      * 账号密码登录
      */
-    private void login(final View view) {
+    private void login(final View view,String username,String password) {
         final User user = new User();
         //此处替换为你的用户名
-        user.setUsername("username");
+        user.setUsername(username);
         //此处替换为你的密码
-        user.setPassword("password");
+        user.setPassword(password);
         user.login(new SaveListener<User>() {
             @Override
             public void done(User bmobUser, BmobException e) {
@@ -73,6 +74,9 @@ public class AccountUtils {
             public void done(User user, BmobException e) {
                 if (e == null) {
                     Snackbar.make(view, "登录成功：" + user.getUsername(), Snackbar.LENGTH_LONG).show();
+                    //同步数据库
+                    SyncUtils su=new SyncUtils();
+                    su.syncDatabase();
                 } else {
                     Snackbar.make(view, "登录失败：" + e.getMessage(), Snackbar.LENGTH_LONG).show();
                 }

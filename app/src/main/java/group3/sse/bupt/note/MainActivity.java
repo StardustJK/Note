@@ -363,6 +363,8 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                 coverView.setOnTouchListener(new View.OnTouchListener() {
                     @Override
                     public boolean onTouch(View v, MotionEvent event) {
+                        refreshListView();
+                        refreshRecycleBin();
                         popupWindow.dismiss();
                         return true;
 

@@ -14,6 +14,7 @@ import cn.bmob.v3.BmobObject;
 import cn.bmob.v3.BmobQuery;
 import cn.bmob.v3.BmobUser;
 import cn.bmob.v3.exception.BmobException;
+import cn.bmob.v3.listener.FindListener;
 import cn.bmob.v3.listener.QueryListener;
 import cn.bmob.v3.listener.SaveListener;
 import cn.bmob.v3.listener.UpdateListener;
@@ -187,6 +188,57 @@ public class SyncUtils extends Application {
                     }
                 });
             }
+            //下载
+            //先找出所有该用户的笔记
+            BmobQuery<Note> noteQuery = new BmobQuery<>();
+            //因为笔记的user属性的关联类型，所以不知道能不能用条件查询
+            //经过测试，可以这样查询
+            noteQuery.addWhereEqualTo("user", SyncUtils.getCurrentUser().getObjectId());
+            noteQuery.findObjects(new FindListener<Note>() {
+                @Override
+                public void done(List<Note> object, BmobException e) {
+                    if (e == null) {
+                        //Snackbar.make(mBtnEqual, "查询成功：" + object.size(), Snackbar.LENGTH_LONG).show();
+                        Log.i("SUCCESS","同步数据库下载查询成功，查到："+object.size());
+                        CRUD op1=new CRUD(SyncApplication.getContext());
+                        op1.open();
+                        //遍历查询结果
+                        for (Note note:object){
+                            //如果云端有新建标识而本地没有这个笔记，则添加
+                            if (note.getAdd()==1){
+                                //判断本地数据库是否有这个笔记
+                                Log.i("SUCCESS","有新建标识");
+                                if (!op1.findNoteByObjectIdExist(note.getObjectId())){
+                                    Log.i("SUCCESS","本地数据库没有这条笔记");
+                                    note.setAdd(0);
+                                    op1.addNote(note);
+                                }
+                            }
+
+                            //编辑标记
+                            if (note.getEdit()==1){
+                                Note tmp=op1.findNoteByObjectId(note.getObjectId());
+                                if (tmp!=null && tmp.getEdit()==0){
+                                    note.setEdit(0);
+                                    op1.updateLocalNote(note);
+                                }
+                            }
+
+                            //删除标记
+                            if (note.getDelete()==1){
+                                Note tmp=op1.findNoteByObjectId(note.getObjectId());
+                                if (tmp!=null && tmp.getDelete()==0){
+                                    op1.updateLocalNote(note);
+                                }
+                            }
+                        }
+                        op1.close();
+                    } else {
+                        Log.e("BMOB", e.toString());
+                        //Snackbar.make(mBtnEqual, e.getMessage(), Snackbar.LENGTH_LONG).show();
+                    }
+                }
+            });
             op.close();
         }
     }
