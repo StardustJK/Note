@@ -58,17 +58,18 @@ public class SyncUtils extends Application {
                     //Snackbar.make(this, "新增成功：", Snackbar.LENGTH_LONG).show();
                     //如果云端保存成功,note就有了objectid，更新本地数据库
                     //如果新建成功，应该是云端有标识，本地没有
-                    note.setAdd(0);
+                    //note.setAdd(0);
+                    //新增objectId
+                    CRUD op=new CRUD(SyncApplication.getContext());
+                    op.open();
+                    op.updateLocalNoteById(note);
+                    op.close();
                 } else {
                     Log.e("BMOB", e.toString());
                     //Snackbar.make(, e.getMessage(), Snackbar.LENGTH_LONG).show();
                     //没有新建成功，打上标识，等待下一次同步的时候新建
                     Log.e("BMOB", "新增失败");
                 }
-                CRUD op=new CRUD(SyncApplication.getContext());
-                op.open();
-                op.updateLocalNote(note);
-                op.close();
             }
         });
         Log.i("TEST","出来的云端id是："+note.getObjectId());
@@ -93,7 +94,7 @@ public class SyncUtils extends Application {
                     //不成功的话，添加编辑标记，等下次同步
                     CRUD op=new CRUD(SyncApplication.getContext());
                     op.open();
-                    op.updateLocalNote(note);
+                    op.updateLocalNoteByObjectId(note);
                     op.close();
 
                     //Snackbar.make(mBtnUpdate, e.getMessage(), Snackbar.LENGTH_LONG).show();
@@ -138,9 +139,9 @@ public class SyncUtils extends Application {
             List<Note> deleteNotes=op.getAllSignNote(3);
             //所有有新增标记的都添加到云端，然后本地删除新增标识
             for (Note noteAdd:addNotes){
-                addNote(noteAdd);
-                noteAdd.setAdd(0);
-                op.updateLocalNote(noteAdd);
+                if (noteAdd.getObjectId()==null) {
+                    addNote(noteAdd);
+                }
             }
 
             for (Note noteEdit:editNotes){
@@ -150,20 +151,17 @@ public class SyncUtils extends Application {
                     public void done(Note note1, BmobException e) {
                         if (e == null) {
                             //判断查询到的这个结果是否也有编辑标识
-                            CRUD op1=new CRUD(SyncApplication.getContext());
-                            op1.open();
                             noteEdit.setEdit(1);
-                            op1.updateNote(noteEdit);
-                            op1.close();
+                            updateNote(noteEdit);
                             //Snackbar.make(mBtnQuery, "查询成功：" + category.getName(), Snackbar.LENGTH_LONG).show();
                         } else {
-                            Log.e("BMOB", e.toString());
+                            Log.e("BMOB", "查询失败"+e.toString());
                             //Snackbar.make(mBtnQuery, e.getMessage(), Snackbar.LENGTH_LONG).show();
                         }
                     }
                 });
                 noteEdit.setEdit(0);
-                op.updateLocalNote(noteEdit);
+                op.updateLocalNoteByObjectId(noteEdit);
             }
             //删除同理
             for (Note noteDelete:deleteNotes){
@@ -174,15 +172,12 @@ public class SyncUtils extends Application {
                         if (e == null) {
                             //判断查询到的这个结果是否也有删除标识
                             if (note1.getDelete()==0) {
-                                CRUD op1 = new CRUD(SyncApplication.getContext());
-                                op1.open();
-                                noteDelete.setDelete(1);
-                                op1.removeNote(noteDelete);
-                                op1.close();
+                                //noteDelete.setDelete(1);
+                                deleteNote(noteDelete);
                             }
                             //Snackbar.make(mBtnQuery, "查询成功：" + category.getName(), Snackbar.LENGTH_LONG).show();
                         } else {
-                            Log.e("BMOB", e.toString());
+                            Log.e("BMOB", "查询失败"+e.toString());
                             //Snackbar.make(mBtnQuery, e.getMessage(), Snackbar.LENGTH_LONG).show();
                         }
                     }
@@ -200,11 +195,14 @@ public class SyncUtils extends Application {
                     if (e == null) {
                         //Snackbar.make(mBtnEqual, "查询成功：" + object.size(), Snackbar.LENGTH_LONG).show();
                         Log.i("SUCCESS","同步数据库下载查询成功，查到："+object.size());
+                        Log.i("SUCCESS","同步数据库下载查询成功，查到："+object.toString());
                         CRUD op1=new CRUD(SyncApplication.getContext());
                         op1.open();
                         //遍历查询结果
                         for (Note note:object){
                             //如果云端有新建标识而本地没有这个笔记，则添加
+                            Log.i("SUCCESS","进入遍历"+note.getEdit());
+
                             if (note.getAdd()==1){
                                 //判断本地数据库是否有这个笔记
                                 Log.i("SUCCESS","有新建标识");
@@ -217,10 +215,14 @@ public class SyncUtils extends Application {
 
                             //编辑标记
                             if (note.getEdit()==1){
+                                Log.i("SUCCESS","进入遍历2"+note.getEdit());
                                 Note tmp=op1.findNoteByObjectId(note.getObjectId());
+                                Log.i("SUCCESS","进入遍历3"+note.getEdit());
                                 if (tmp!=null && tmp.getEdit()==0){
+                                    Log.i("SUCCESS","进入遍历4"+note.getEdit());
                                     note.setEdit(0);
-                                    op1.updateLocalNote(note);
+                                    op1.updateLocalNoteByObjectId(note);
+                                    Log.i("SUCCESS","进入遍历5"+note.getEdit());
                                 }
                             }
 
@@ -228,13 +230,15 @@ public class SyncUtils extends Application {
                             if (note.getDelete()==1){
                                 Note tmp=op1.findNoteByObjectId(note.getObjectId());
                                 if (tmp!=null && tmp.getDelete()==0){
-                                    op1.updateLocalNote(note);
+                                    op1.updateLocalNoteByObjectId(note);
                                 }
                             }
+
                         }
+
                         op1.close();
                     } else {
-                        Log.e("BMOB", e.toString());
+                        Log.e("BMOB", "失败"+e.toString());
                         //Snackbar.make(mBtnEqual, e.getMessage(), Snackbar.LENGTH_LONG).show();
                     }
                 }

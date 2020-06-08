@@ -13,6 +13,7 @@ import java.util.List;
 import cn.bmob.v3.exception.BmobException;
 import cn.bmob.v3.listener.SaveListener;
 import group3.sse.bupt.note.Account.AccountUtils;
+import group3.sse.bupt.note.CloudSync.SyncApplication;
 import group3.sse.bupt.note.CloudSync.SyncUtils;
 
 public class CRUD {
@@ -51,6 +52,7 @@ private static final String[] columns={
             note.setUser(SyncUtils.getCurrentUser());
             isLogin =true;
         }
+        note.setAdd(1);
         ContentValues contentValues=new ContentValues();
         contentValues.put(NoteDatabase.CONTENT,note.getContent());
         contentValues.put(NoteDatabase.TIME,note.getTime());
@@ -88,6 +90,10 @@ private static final String[] columns={
             cursor.moveToFirst();
         }
         Note e=new Note(cursor.getString(1),cursor.getString(2),cursor.getInt(3),cursor.getInt(4));
+        //e.setId(cursor.getLong(0));
+        e.setAdd(cursor.getInt(5));
+        e.setEdit(cursor.getInt(6));
+        e.setDelete(cursor.getInt(7));
         //设置objectid
         e.setObjectId(cursor.getString(9));
         System.out.println("getid"+id);
@@ -115,7 +121,16 @@ private static final String[] columns={
             note.setDelete(cursor.getInt(cursor.getColumnIndex(NoteDatabase.DELETE)));
             //排除掉回收站
             if(note.getIf_delete()!=1 && note.getDelete()!=1) {
-                notes.add(note);
+                if (SyncUtils.isLogin()){
+                    if (cursor.getString(cursor.getColumnIndex(NoteDatabase.USER_ID)).equals(SyncUtils.getCurrentUser().getObjectId())) {
+                        note.setUser(SyncUtils.getCurrentUser());
+                        notes.add(note);
+                    }
+                }else {
+                    if (cursor.getString(cursor.getColumnIndex(NoteDatabase.USER_ID)).equals(null)) {
+                        notes.add(note);
+                    }
+                }
             }
         }
     }
@@ -141,7 +156,16 @@ private static final String[] columns={
                 note.setEdit(cursor.getInt(cursor.getColumnIndex(NoteDatabase.EDIT)));
                 note.setDelete(cursor.getInt(cursor.getColumnIndex(NoteDatabase.DELETE)));
                 if(note.getDelete()!=1) {
-                    notes.add(note);
+                    if (SyncUtils.isLogin()){
+                        if (cursor.getString(cursor.getColumnIndex(NoteDatabase.USER_ID)).equals(SyncUtils.getCurrentUser().getObjectId())) {
+                            note.setUser(SyncUtils.getCurrentUser());
+                            notes.add(note);
+                        }
+                    }else {
+                        if (cursor.getString(cursor.getColumnIndex(NoteDatabase.USER_ID)).equals(null)) {
+                            notes.add(note);
+                        }
+                    }
                 }
             }
         }
@@ -149,7 +173,7 @@ private static final String[] columns={
 }
     //仅更新本地数据库
     //这个函数是给云同步使用的
-    public void updateLocalNote(Note note){
+    public void updateLocalNoteById(Note note){
         Log.i("TEST","笔记的ocjectid传到update函数中的值是："+note.getObjectId());
         Log.i("TEST","笔记的id传到update函数中的值是："+note.getId());
         ContentValues values = new ContentValues();
@@ -167,6 +191,24 @@ private static final String[] columns={
                 NoteDatabase.ID + "=?",new String[] { String.valueOf(note.getId())});
 
     }
+    public void updateLocalNoteByObjectId(Note note){
+        Log.i("TEST","笔记的ocjectid传到update函数中的值是："+note.getObjectId());
+        Log.i("TEST","笔记的id传到update函数中的值是："+note.getId());
+        ContentValues values = new ContentValues();
+        values.put(NoteDatabase.CONTENT, note.getContent());
+        values.put(NoteDatabase.TIME, note.getTime());
+        values.put(NoteDatabase.TAG, note.getTag());
+        values.put(NoteDatabase.IfDELETE,note.getIf_delete());
+        values.put(NoteDatabase.OBJECT_ID, note.getObjectId());
+        values.put(NoteDatabase.ADD, note.getAdd());
+        values.put(NoteDatabase.EDIT, note.getEdit());
+        values.put(NoteDatabase.DELETE, note.getDelete());
+        values.put(NoteDatabase.USER_ID, note.getUser().getObjectId());
+        // updating row
+        db.update(NoteDatabase.TABLE_NAME, values,
+                NoteDatabase.OBJECT_ID + "=?",new String[] { String.valueOf(note.getObjectId())});
+
+    }
 
     //更新笔记
     public int updateNote(Note note) {
@@ -174,6 +216,9 @@ private static final String[] columns={
         //所以要通过本地id在本地数据库查objectid
         Note tmpNote=getNote(note.getId());//创建一个临时note
         note.setObjectId(tmpNote.getObjectId());
+        note.setAdd(tmpNote.getAdd());
+        note.setEdit(tmpNote.getEdit());
+        note.setDelete(tmpNote.getDelete());
         //作者
         if (SyncUtils.isLogin()){
             note.setUser(SyncUtils.getCurrentUser());
@@ -237,7 +282,17 @@ private static final String[] columns={
                 note.setTime(cursor.getString(cursor.getColumnIndex(NoteDatabase.TIME)));
                 note.setTag(cursor.getInt(cursor.getColumnIndex(NoteDatabase.TAG)));
                 note.setIf_delete(cursor.getInt(cursor.getColumnIndex(NoteDatabase.IfDELETE)));
-                notes.add(note);
+
+                if (SyncUtils.isLogin()){
+                    if (cursor.getString(cursor.getColumnIndex(NoteDatabase.USER_ID)).equals(SyncUtils.getCurrentUser().getObjectId())) {
+                        note.setUser(SyncUtils.getCurrentUser());
+                        notes.add(note);
+                    }
+                }else {
+                    if (cursor.getString(cursor.getColumnIndex(NoteDatabase.USER_ID)).equals(null)) {
+                        notes.add(note);
+                    }
+                }
             }
 
         //db.delete(NoteDatabase.TABLE_NAME,NoteDatabase.TAG+"="+tag,null);
@@ -271,7 +326,7 @@ private static final String[] columns={
         }
     }
 
-    //找到所有满足条件的标识笔记
+    //找到所有满足条件的标识笔记，该用户下的
     //参数1是新增，2是修改，3是删除
     public List<Note> getAllSignNote(int sign){
         List<Note> notes=new ArrayList<>();
@@ -298,10 +353,12 @@ private static final String[] columns={
                 note.setAdd(cursor.getInt(cursor.getColumnIndex(NoteDatabase.ADD)));
                 note.setEdit(cursor.getInt(cursor.getColumnIndex(NoteDatabase.EDIT)));
                 note.setDelete(cursor.getInt(cursor.getColumnIndex(NoteDatabase.DELETE)));
-                if (SyncUtils.isLogin()) {
-                    note.setUser(SyncUtils.getCurrentUser());
+                if (SyncUtils.isLogin()){
+                        if(cursor.getString(cursor.getColumnIndex(NoteDatabase.USER_ID)).equals(SyncUtils.getCurrentUser().getObjectId())) {
+                            note.setUser(SyncUtils.getCurrentUser());
+                            notes.add(note);
+                        }
                 }
-                notes.add(note);
             }
         }
         return notes;
@@ -321,19 +378,22 @@ private static final String[] columns={
     public Note findNoteByObjectId(String objectId){
         Cursor cursor=db.query(NoteDatabase.TABLE_NAME,columns,NoteDatabase.OBJECT_ID+"=?",
                 new String[]{String.valueOf(objectId)},null,null,null,null);
-        if(cursor!=null){
-            cursor.moveToFirst();
+        if(cursor.moveToFirst()==false){
+            return null;
+        }else {
+            Log.i("SUCCESS","进入遍历2333333");
+            //打包
+            Note e = new Note(cursor.getString(1), cursor.getString(2), cursor.getInt(3), cursor.getInt(4));
+            e.setId(cursor.getLong(0));
+            e.setAdd(cursor.getInt(5));
+            e.setEdit(cursor.getInt(6));
+            e.setDelete(cursor.getInt(7));
+            //e.setUser(cursor.getInt(8));
+            //设置objectid
+            //e.setObjectId(cursor.getString(9));
+            //System.out.println("getid"+id);
+            return e;
         }
-        //打包
-        Note e=new Note(cursor.getString(1),cursor.getString(2),cursor.getInt(3),cursor.getInt(4));
-        e.setId(cursor.getLong(0));
-        e.setAdd(cursor.getInt(5));
-        e.setEdit(cursor.getInt(6));
-        e.setDelete(cursor.getInt(7));
-        //e.setUser(cursor.getInt(8));
-        //设置objectid
-        //e.setObjectId(cursor.getString(9));
-        //System.out.println("getid"+id);
-        return e;
+
     }
 }
