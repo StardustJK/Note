@@ -58,6 +58,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
+import cn.bmob.v3.Bmob;
+import group3.sse.bupt.note.CloudSync.SyncUtils;
+
 //主界面
 public class MainActivity extends BaseActivity implements AdapterView.OnItemClickListener {
 
@@ -104,8 +107,15 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
     @SuppressLint("RestrictedApi")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        //动态申请权限
         checkPermission();
+
+        //初始化BmobSDK
+        //Bmob.initialize(this, "706f2bfd8156941cd068ce74cbe48255");
+
         super.onCreate(savedInstanceState);
+        //初始化BmobSDK
+        Bmob.initialize(this, "706f2bfd8156941cd068ce74cbe48255");
         setContentView(R.layout.activity_main);
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
@@ -119,7 +129,9 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
 
 
 
-
+        //同步数据库
+        SyncUtils su=new SyncUtils();
+        su.syncDatabase();
     }
     void initView(){
         onSlideGestureListener = new OnSlideGestureListener();
@@ -351,6 +363,8 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                 coverView.setOnTouchListener(new View.OnTouchListener() {
                     @Override
                     public boolean onTouch(View v, MotionEvent event) {
+                        refreshListView();
+                        refreshRecycleBin();
                         popupWindow.dismiss();
                         return true;
 
@@ -378,6 +392,7 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                 note_id = data.getExtras().getLong("id", 0);
 
                 if (returnMode == 0) {
+                    //新建笔记
                     String content = data.getExtras().getString("content");
                     String time = data.getExtras().getString("time");
                     int tag = data.getExtras().getInt("tag", 1);
@@ -387,8 +402,12 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                     op.addNote(newNote);
                     op.close();
                 } else if (returnMode == 1) {
+                    //更新笔记
+                    //内容
                     String content = data.getExtras().getString("content");
+                    //时间
                     String time = data.getExtras().getString("time");
+                    //标签
                     int tag = data.getExtras().getInt("tag", 1);
                     Note newNote = new Note(content, time, tag,0);
                     newNote.setId(note_id);
@@ -397,6 +416,7 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                     op.updateNote(newNote);
                     op.close();
                 } else if (returnMode == 2) {//删除
+                    //把笔记移到回收站
                     Note curNote = new Note();
                     curNote.setId(note_id);
                     curNote.setContent(data.getExtras().getString("content"));
@@ -430,13 +450,13 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                 System.out.println("刷新回收站"+id);
                 System.out.println("returnmode"+returnMode_r);
                 if(returnMode_r==0){
-                Note note = new Note();
-                note.setId(id);
-                CRUD op = new CRUD(context);
-                op.open();
-                op.removeNote(note);
-                op.close();
-                refreshRecycleBin();
+                    Note note = new Note();
+                    note.setId(id);
+                    CRUD op = new CRUD(context);
+                    op.open();
+                    op.removeNote(note);
+                    op.close();
+                    refreshRecycleBin();
                 }
                 else{
                     Note note=new Note();
@@ -526,15 +546,15 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
             case R.id.listView:
                 Note curNote = (Note) parent.getItemAtPosition(position);//当前笔记
                 if(myToolbar.getTitle()!="回收站"){
-                Intent intent = new Intent(MainActivity.this, EditActivity.class);
-                intent.putExtra("content", curNote.getContent());
-                intent.putExtra("id", curNote.getId());
-                intent.putExtra("time", curNote.getTime());
-                intent.putExtra("mode", 3);//编辑一个已有笔记模式
-                intent.putExtra("tag", curNote.getTag());
-                startActivityForResult(intent, 1);//从编辑页面返回结果
-                break;
-        }else{
+                    Intent intent = new Intent(MainActivity.this, EditActivity.class);
+                    intent.putExtra("content", curNote.getContent());
+                    intent.putExtra("id", curNote.getId());
+                    intent.putExtra("time", curNote.getTime());
+                    intent.putExtra("mode", 3);//编辑一个已有笔记模式
+                    intent.putExtra("tag", curNote.getTag());
+                    startActivityForResult(intent, 1);//从编辑页面返回结果
+                    break;
+                }else{
                     Intent intent = new Intent(MainActivity.this, RecycleActivity.class);
                     intent.putExtra("content", curNote.getContent());
                     intent.putExtra("id", curNote.getId());
