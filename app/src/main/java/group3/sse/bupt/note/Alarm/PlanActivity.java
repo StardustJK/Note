@@ -488,7 +488,7 @@ public class PlanActivity extends BaseActivity implements AdapterView.OnItemClic
                 intent.setClass(PlanActivity.this, MainActivity.class);
                 //intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);	//不重复打开多个界面
                 startActivity(intent);
-                overridePendingTransition(R.anim.move_left_in, R.anim.move_right_out);
+                overridePendingTransition(0, 0);
                 finish();
             }
             return false;

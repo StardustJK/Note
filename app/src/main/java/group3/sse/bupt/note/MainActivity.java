@@ -470,6 +470,7 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                     op.updateNote(note);
                     op.close();
                     refreshRecycleBin();
+
                 }
                 break;
 
