@@ -127,8 +127,10 @@ private static final String[] columns={
                         notes.add(note);
                     }
                 }else {
-                    if (cursor.getString(cursor.getColumnIndex(NoteDatabase.USER_ID)).equals(null)) {
-                        notes.add(note);
+                   // if (cursor.getString(cursor.getColumnIndex(NoteDatabase.USER_ID)).equals(null)) {
+                    if (cursor.getString(cursor.getColumnIndex(NoteDatabase.USER_ID))==null) {
+
+                    notes.add(note);
                     }
                 }
             }
@@ -162,7 +164,7 @@ private static final String[] columns={
                             notes.add(note);
                         }
                     }else {
-                        if (cursor.getString(cursor.getColumnIndex(NoteDatabase.USER_ID)).equals(null)) {
+                        if (cursor.getString(cursor.getColumnIndex(NoteDatabase.USER_ID))==null) {
                             notes.add(note);
                         }
                     }
@@ -289,7 +291,7 @@ private static final String[] columns={
                         notes.add(note);
                     }
                 }else {
-                    if (cursor.getString(cursor.getColumnIndex(NoteDatabase.USER_ID)).equals(null)) {
+                    if (cursor.getString(cursor.getColumnIndex(NoteDatabase.USER_ID))==null) {
                         notes.add(note);
                     }
                 }
